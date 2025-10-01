@@ -9,6 +9,9 @@ import Dashboard from "./pages/Dashboard";
 import Residents from "./pages/Residents";
 import Medical from "./pages/Medical";
 import Documents from "./pages/Documents";
+import Accounting from "./pages/Accounting";
+import HR from "./pages/HR";
+import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,9 +29,9 @@ const App = () => (
           <Route path="/residents" element={<DashboardLayout><Residents /></DashboardLayout>} />
           <Route path="/medical" element={<DashboardLayout><Medical /></DashboardLayout>} />
           <Route path="/documents" element={<DashboardLayout><Documents /></DashboardLayout>} />
-          <Route path="/accounting" element={<DashboardLayout><div className="text-center text-muted-foreground py-12">Accounting module coming soon</div></DashboardLayout>} />
-          <Route path="/hr" element={<DashboardLayout><div className="text-center text-muted-foreground py-12">HR module coming soon</div></DashboardLayout>} />
-          <Route path="/reports" element={<DashboardLayout><div className="text-center text-muted-foreground py-12">Reports module coming soon</div></DashboardLayout>} />
+          <Route path="/accounting" element={<DashboardLayout><Accounting /></DashboardLayout>} />
+          <Route path="/hr" element={<DashboardLayout><HR /></DashboardLayout>} />
+          <Route path="/reports" element={<DashboardLayout><Reports /></DashboardLayout>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
