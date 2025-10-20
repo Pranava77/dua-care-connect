@@ -14,6 +14,141 @@ export type Database = {
   }
   public: {
     Tables: {
+      leave_requests: {
+        Row: {
+          created_at: string
+          from_date: string
+          id: string
+          leave_type: string
+          reason: string | null
+          staff_id: string
+          status: Database["public"]["Enums"]["leave_status"]
+          to_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          from_date: string
+          id?: string
+          leave_type: string
+          reason?: string | null
+          staff_id: string
+          status?: Database["public"]["Enums"]["leave_status"]
+          to_date: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          from_date?: string
+          id?: string
+          leave_type?: string
+          reason?: string | null
+          staff_id?: string
+          status?: Database["public"]["Enums"]["leave_status"]
+          to_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_requests_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      medical_records: {
+        Row: {
+          condition: string
+          created_at: string
+          id: string
+          last_check_date: string
+          notes: string | null
+          priority: Database["public"]["Enums"]["priority_level"]
+          resident_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          condition: string
+          created_at?: string
+          id?: string
+          last_check_date?: string
+          notes?: string | null
+          priority?: Database["public"]["Enums"]["priority_level"]
+          resident_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          condition?: string
+          created_at?: string
+          id?: string
+          last_check_date?: string
+          notes?: string | null
+          priority?: Database["public"]["Enums"]["priority_level"]
+          resident_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medical_records_resident_id_fkey"
+            columns: ["resident_id"]
+            isOneToOne: false
+            referencedRelation: "residents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prescriptions: {
+        Row: {
+          created_at: string
+          dosage: string
+          id: string
+          medication: string
+          refill_date: string
+          resident_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dosage: string
+          id?: string
+          medication: string
+          refill_date: string
+          resident_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dosage?: string
+          id?: string
+          medication?: string
+          refill_date?: string
+          resident_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prescriptions_resident_id_fkey"
+            columns: ["resident_id"]
+            isOneToOne: false
+            referencedRelation: "residents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -35,6 +170,93 @@ export type Database = {
         }
         Relationships: []
       }
+      residents: {
+        Row: {
+          age: number
+          contact_number: string | null
+          created_at: string
+          emergency_contact: string | null
+          id: string
+          join_date: string
+          name: string
+          room: string
+          status: Database["public"]["Enums"]["resident_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          age: number
+          contact_number?: string | null
+          created_at?: string
+          emergency_contact?: string | null
+          id?: string
+          join_date?: string
+          name: string
+          room: string
+          status?: Database["public"]["Enums"]["resident_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          age?: number
+          contact_number?: string | null
+          created_at?: string
+          emergency_contact?: string | null
+          id?: string
+          join_date?: string
+          name?: string
+          room?: string
+          status?: Database["public"]["Enums"]["resident_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      staff: {
+        Row: {
+          contact_number: string | null
+          created_at: string
+          department: string
+          hire_date: string
+          id: string
+          name: string
+          role: string
+          salary: number | null
+          shift: string
+          status: Database["public"]["Enums"]["staff_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          contact_number?: string | null
+          created_at?: string
+          department: string
+          hire_date?: string
+          id?: string
+          name: string
+          role: string
+          salary?: number | null
+          shift: string
+          status?: Database["public"]["Enums"]["staff_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          contact_number?: string | null
+          created_at?: string
+          department?: string
+          hire_date?: string
+          id?: string
+          name?: string
+          role?: string
+          salary?: number | null
+          shift?: string
+          status?: Database["public"]["Enums"]["staff_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -43,7 +265,10 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      leave_status: "pending" | "approved" | "rejected"
+      priority_level: "low" | "medium" | "high"
+      resident_status: "active" | "medical_care" | "discharged"
+      staff_status: "present" | "leave" | "absent"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -170,6 +395,11 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      leave_status: ["pending", "approved", "rejected"],
+      priority_level: ["low", "medium", "high"],
+      resident_status: ["active", "medical_care", "discharged"],
+      staff_status: ["present", "leave", "absent"],
+    },
   },
 } as const

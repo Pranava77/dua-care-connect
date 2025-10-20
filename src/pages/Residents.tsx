@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Search, Filter } from "lucide-react";
@@ -11,17 +11,42 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 export default function Residents() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [residents, setResidents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
-  const residents = [
-    { id: 1, name: "Rajesh Kumar", age: 72, room: "A-101", status: "Active", joinDate: "2023-06-15" },
-    { id: 2, name: "Meena Patel", age: 68, room: "B-205", status: "Active", joinDate: "2023-08-22" },
-    { id: 3, name: "Suresh Reddy", age: 75, room: "A-103", status: "Medical Care", joinDate: "2023-04-10" },
-    { id: 4, name: "Lakshmi Iyer", age: 70, room: "C-301", status: "Active", joinDate: "2023-09-05" },
-    { id: 5, name: "Vijay Singh", age: 78, room: "B-202", status: "Active", joinDate: "2023-07-18" },
-  ];
+  useEffect(() => {
+    if (user) {
+      fetchResidents();
+    }
+  }, [user]);
+
+  const fetchResidents = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('residents')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setResidents(data || []);
+    } catch (error: any) {
+      toast.error("Failed to load residents: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredResidents = residents.filter((resident) =>
+    resident.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    resident.room.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="space-y-6">
@@ -68,31 +93,45 @@ export default function Residents() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {residents.map((resident) => (
-                <TableRow key={resident.id}>
-                  <TableCell className="font-medium">#{resident.id}</TableCell>
-                  <TableCell>{resident.name}</TableCell>
-                  <TableCell>{resident.age}</TableCell>
-                  <TableCell>{resident.room}</TableCell>
-                  <TableCell>
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        resident.status === "Active"
-                          ? "bg-success/10 text-success"
-                          : "bg-warning/10 text-warning"
-                      }`}
-                    >
-                      {resident.status}
-                    </span>
-                  </TableCell>
-                  <TableCell>{resident.joinDate}</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="sm">
-                      View
-                    </Button>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center">
+                    Loading...
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : filteredResidents.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center">
+                    No residents found. Add your first resident to get started.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredResidents.map((resident) => (
+                  <TableRow key={resident.id}>
+                    <TableCell className="font-medium">#{resident.id.slice(0, 8)}</TableCell>
+                    <TableCell>{resident.name}</TableCell>
+                    <TableCell>{resident.age}</TableCell>
+                    <TableCell>{resident.room}</TableCell>
+                    <TableCell>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          resident.status === "active"
+                            ? "bg-success/10 text-success"
+                            : "bg-warning/10 text-warning"
+                        }`}
+                      >
+                        {resident.status.replace('_', ' ').charAt(0).toUpperCase() + resident.status.slice(1)}
+                      </span>
+                    </TableCell>
+                    <TableCell>{new Date(resident.join_date).toLocaleDateString()}</TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="sm">
+                        View
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>

@@ -1,7 +1,8 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, UserPlus, Calendar, DollarSign, Users } from "lucide-react";
+import { UserPlus, Calendar, DollarSign, Users } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -10,51 +11,74 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 export default function HR() {
+  const [staffMembers, setStaffMembers] = useState<any[]>([]);
+  const [leaveRequests, setLeaveRequests] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      fetchData();
+    }
+  }, [user]);
+
+  const fetchData = async () => {
+    try {
+      const [staffResult, leaveResult] = await Promise.all([
+        supabase.from('staff').select('*').order('created_at', { ascending: false }),
+        supabase.from('leave_requests').select('*, staff(name)').order('from_date', { ascending: true })
+      ]);
+
+      if (staffResult.error) throw staffResult.error;
+      if (leaveResult.error) throw leaveResult.error;
+
+      setStaffMembers(staffResult.data || []);
+      setLeaveRequests(leaveResult.data || []);
+    } catch (error: any) {
+      toast.error("Failed to load data: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const presentCount = staffMembers.filter(s => s.status === 'present').length;
+  const onLeaveCount = staffMembers.filter(s => s.status === 'leave').length;
+  const totalStaff = staffMembers.length;
+
   const hrStats = [
     {
       title: "Total Staff",
-      value: "48",
-      trend: "+2 this month",
+      value: totalStaff.toString(),
+      trend: `${presentCount} present`,
       icon: Users,
       color: "text-primary",
     },
     {
       title: "Present Today",
-      value: "45",
-      trend: "94% attendance",
+      value: presentCount.toString(),
+      trend: `${totalStaff > 0 ? Math.round((presentCount / totalStaff) * 100) : 0}% attendance`,
       icon: Calendar,
       color: "text-success",
     },
     {
       title: "On Leave",
-      value: "3",
-      trend: "2 planned",
+      value: onLeaveCount.toString(),
+      trend: `${leaveRequests.filter(l => l.status === 'approved').length} approved`,
       icon: Calendar,
       color: "text-warning",
     },
     {
-      title: "Monthly Payroll",
-      value: "₹12.5L",
-      trend: "Due in 8 days",
+      title: "Active Requests",
+      value: leaveRequests.filter(l => l.status === 'pending').length.toString(),
+      trend: "Pending approval",
       icon: DollarSign,
       color: "text-secondary",
     },
-  ];
-
-  const staffMembers = [
-    { id: 1, name: "Dr. Sharma", role: "Doctor", department: "Medical", status: "Present", shift: "Day" },
-    { id: 2, name: "Nurse Priya", role: "Nurse", department: "Nursing", status: "Present", shift: "Night" },
-    { id: 3, name: "Ramesh Kumar", role: "Caretaker", department: "Care", status: "Leave", shift: "Day" },
-    { id: 4, name: "Anjali Verma", role: "Nurse", department: "Nursing", status: "Present", shift: "Day" },
-    { id: 5, name: "Sunil Patel", role: "Admin", department: "Admin", status: "Present", shift: "Day" },
-  ];
-
-  const upcomingLeaves = [
-    { name: "Ramesh Kumar", type: "Sick Leave", from: "2025-10-01", to: "2025-10-03", status: "Approved" },
-    { name: "Priya Singh", type: "Annual Leave", from: "2025-10-10", to: "2025-10-15", status: "Pending" },
-    { name: "Dr. Mehta", type: "Casual Leave", from: "2025-10-05", to: "2025-10-05", status: "Approved" },
   ];
 
   const departments = [
@@ -112,26 +136,36 @@ export default function HR() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {staffMembers.map((staff) => (
-                  <TableRow key={staff.id}>
-                    <TableCell className="font-medium">{staff.name}</TableCell>
-                    <TableCell>{staff.role}</TableCell>
-                    <TableCell>{staff.department}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={staff.status === "Present" ? "default" : "secondary"}
-                        className={
-                          staff.status === "Present"
-                            ? "bg-success/10 text-success hover:bg-success/20"
-                            : "bg-warning/10 text-warning hover:bg-warning/20"
-                        }
-                      >
-                        {staff.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm">{staff.shift}</TableCell>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center">Loading...</TableCell>
                   </TableRow>
-                ))}
+                ) : staffMembers.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center">No staff members found</TableCell>
+                  </TableRow>
+                ) : (
+                  staffMembers.map((staff) => (
+                    <TableRow key={staff.id}>
+                      <TableCell className="font-medium">{staff.name}</TableCell>
+                      <TableCell>{staff.role}</TableCell>
+                      <TableCell>{staff.department}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={staff.status === "present" ? "default" : "secondary"}
+                          className={
+                            staff.status === "present"
+                              ? "bg-success/10 text-success hover:bg-success/20"
+                              : "bg-warning/10 text-warning hover:bg-warning/20"
+                          }
+                        >
+                          {staff.status.charAt(0).toUpperCase() + staff.status.slice(1)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm">{staff.shift}</TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </CardContent>
@@ -163,27 +197,33 @@ export default function HR() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {upcomingLeaves.map((leave, index) => (
-                  <div key={index} className="border border-border rounded-lg p-3">
-                    <p className="font-medium text-sm text-foreground">{leave.name}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{leave.type}</p>
-                    <div className="flex items-center justify-between mt-2">
-                      <span className="text-xs text-muted-foreground">
-                        {leave.from} - {leave.to}
-                      </span>
-                      <Badge
-                        variant="outline"
-                        className={
-                          leave.status === "Approved"
-                            ? "bg-success/10 text-success"
-                            : "bg-warning/10 text-warning"
-                        }
-                      >
-                        {leave.status}
-                      </Badge>
+                {loading ? (
+                  <div className="text-center text-sm text-muted-foreground">Loading...</div>
+                ) : leaveRequests.length === 0 ? (
+                  <div className="text-center text-sm text-muted-foreground">No upcoming leave</div>
+                ) : (
+                  leaveRequests.slice(0, 3).map((leave) => (
+                    <div key={leave.id} className="border border-border rounded-lg p-3">
+                      <p className="font-medium text-sm text-foreground">{leave.staff?.name}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{leave.leave_type}</p>
+                      <div className="flex items-center justify-between mt-2">
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(leave.from_date).toLocaleDateString()} - {new Date(leave.to_date).toLocaleDateString()}
+                        </span>
+                        <Badge
+                          variant="outline"
+                          className={
+                            leave.status === "approved"
+                              ? "bg-success/10 text-success"
+                              : "bg-warning/10 text-warning"
+                          }
+                        >
+                          {leave.status.charAt(0).toUpperCase() + leave.status.slice(1)}
+                        </Badge>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>

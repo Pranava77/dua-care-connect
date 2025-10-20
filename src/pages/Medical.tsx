@@ -1,18 +1,41 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, Heart, Pill, FileText } from "lucide-react";
+import { AlertTriangle, Pill } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 export default function Medical() {
-  const medicalAlerts = [
-    { id: 1, resident: "Suresh Reddy", condition: "Hypertension", priority: "high", lastCheck: "2 days ago" },
-    { id: 2, resident: "Rajesh Kumar", condition: "Diabetes", priority: "medium", lastCheck: "5 days ago" },
-    { id: 3, resident: "Lakshmi Iyer", condition: "Arthritis", priority: "low", lastCheck: "1 week ago" },
-  ];
+  const [medicalRecords, setMedicalRecords] = useState<any[]>([]);
+  const [prescriptions, setPrescriptions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
-  const prescriptions = [
-    { id: 1, resident: "Meena Patel", medication: "Aspirin 75mg", refillDate: "2025-10-15", status: "Due soon" },
-    { id: 2, resident: "Vijay Singh", medication: "Metformin 500mg", refillDate: "2025-10-20", status: "Pending" },
-  ];
+  useEffect(() => {
+    if (user) {
+      fetchData();
+    }
+  }, [user]);
+
+  const fetchData = async () => {
+    try {
+      const [recordsResult, prescriptionsResult] = await Promise.all([
+        supabase.from('medical_records').select('*, residents(name)').order('last_check_date', { ascending: false }),
+        supabase.from('prescriptions').select('*, residents(name)').order('refill_date', { ascending: true })
+      ]);
+
+      if (recordsResult.error) throw recordsResult.error;
+      if (prescriptionsResult.error) throw prescriptionsResult.error;
+
+      setMedicalRecords(recordsResult.data || []);
+      setPrescriptions(prescriptionsResult.data || []);
+    } catch (error: any) {
+      toast.error("Failed to load medical data: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -31,28 +54,36 @@ export default function Medical() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {medicalAlerts.map((alert) => (
-                <div key={alert.id} className="border border-border rounded-lg p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <p className="font-semibold text-foreground">{alert.resident}</p>
-                      <p className="text-sm text-muted-foreground">{alert.condition}</p>
+              {loading ? (
+                <div className="text-center text-sm text-muted-foreground">Loading...</div>
+              ) : medicalRecords.length === 0 ? (
+                <div className="text-center text-sm text-muted-foreground">No medical alerts</div>
+              ) : (
+                medicalRecords.map((record) => (
+                  <div key={record.id} className="border border-border rounded-lg p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <p className="font-semibold text-foreground">{record.residents?.name}</p>
+                        <p className="text-sm text-muted-foreground">{record.condition}</p>
+                      </div>
+                      <Badge
+                        variant={
+                          record.priority === "high"
+                            ? "destructive"
+                            : record.priority === "medium"
+                            ? "secondary"
+                            : "outline"
+                        }
+                      >
+                        {record.priority}
+                      </Badge>
                     </div>
-                    <Badge
-                      variant={
-                        alert.priority === "high"
-                          ? "destructive"
-                          : alert.priority === "medium"
-                          ? "secondary"
-                          : "outline"
-                      }
-                    >
-                      {alert.priority}
-                    </Badge>
+                    <p className="text-xs text-muted-foreground">
+                      Last checked: {new Date(record.last_check_date).toLocaleDateString()}
+                    </p>
                   </div>
-                  <p className="text-xs text-muted-foreground">Last checked: {alert.lastCheck}</p>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
@@ -66,20 +97,28 @@ export default function Medical() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {prescriptions.map((prescription) => (
-                <div key={prescription.id} className="border border-border rounded-lg p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <p className="font-semibold text-foreground">{prescription.resident}</p>
-                      <p className="text-sm text-muted-foreground">{prescription.medication}</p>
+              {loading ? (
+                <div className="text-center text-sm text-muted-foreground">Loading...</div>
+              ) : prescriptions.length === 0 ? (
+                <div className="text-center text-sm text-muted-foreground">No prescriptions due</div>
+              ) : (
+                prescriptions.slice(0, 5).map((prescription) => (
+                  <div key={prescription.id} className="border border-border rounded-lg p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <p className="font-semibold text-foreground">{prescription.residents?.name}</p>
+                        <p className="text-sm text-muted-foreground">{prescription.medication} - {prescription.dosage}</p>
+                      </div>
+                      <Badge variant="outline" className="bg-warning/10 text-warning">
+                        {prescription.status}
+                      </Badge>
                     </div>
-                    <Badge variant="outline" className="bg-warning/10 text-warning">
-                      {prescription.status}
-                    </Badge>
+                    <p className="text-xs text-muted-foreground">
+                      Refill date: {new Date(prescription.refill_date).toLocaleDateString()}
+                    </p>
                   </div>
-                  <p className="text-xs text-muted-foreground">Refill date: {prescription.refillDate}</p>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
