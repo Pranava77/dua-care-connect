@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Filter } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Search, Filter } from "lucide-react";
+import { AddResidentDialog } from "@/components/AddResidentDialog";
 import {
   Table,
   TableBody,
@@ -55,10 +56,7 @@ export default function Residents() {
           <h2 className="text-3xl font-bold text-foreground">Resident Management</h2>
           <p className="text-muted-foreground">View and manage all residents</p>
         </div>
-        <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-          <Plus className="h-4 w-4 mr-2" />
-          Add New Resident
-        </Button>
+        <AddResidentDialog onSuccess={fetchResidents} />
       </div>
 
       <Card>

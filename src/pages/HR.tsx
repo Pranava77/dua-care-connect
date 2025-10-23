@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { UserPlus, Calendar, DollarSign, Users } from "lucide-react";
+import { Calendar, DollarSign, Users } from "lucide-react";
+import { AddStaffDialog } from "@/components/AddStaffDialog";
 import {
   Table,
   TableBody,
@@ -96,10 +96,7 @@ export default function HR() {
           <h2 className="text-3xl font-bold text-foreground">HR & Staff Management</h2>
           <p className="text-muted-foreground">Manage staff, attendance, leave, and payroll</p>
         </div>
-        <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-          <UserPlus className="h-4 w-4 mr-2" />
-          Add Staff Member
-        </Button>
+        <AddStaffDialog onSuccess={fetchData} />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
