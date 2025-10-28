@@ -1,8 +1,28 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, DollarSign, Users } from "lucide-react";
+import { Calendar, DollarSign, Users, Edit, Trash2, Eye, MoreHorizontal } from "lucide-react";
 import { AddStaffDialog } from "@/components/AddStaffDialog";
+import { EditStaffDialog } from "@/components/EditStaffDialog";
+import { StaffProfileDialog } from "@/components/StaffProfileDialog";
+import { PermissionGate } from "@/components/PermissionGate";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -11,7 +31,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { supabase } from "@/integrations/supabase/client";
+import { mockApi } from "@/lib/mockData";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
@@ -19,6 +39,10 @@ export default function HR() {
   const [staffMembers, setStaffMembers] = useState<any[]>([]);
   const [leaveRequests, setLeaveRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [staffToDelete, setStaffToDelete] = useState<any>(null);
+  const [editingStaff, setEditingStaff] = useState<any>(null);
+  const [viewingStaff, setViewingStaff] = useState<any>(null);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -30,8 +54,8 @@ export default function HR() {
   const fetchData = async () => {
     try {
       const [staffResult, leaveResult] = await Promise.all([
-        supabase.from('staff').select('*').order('created_at', { ascending: false }),
-        supabase.from('leave_requests').select('*, staff(name)').order('from_date', { ascending: true })
+        mockApi.getStaff(),
+        mockApi.getLeaveRequests()
       ]);
 
       if (staffResult.error) throw staffResult.error;
@@ -44,6 +68,27 @@ export default function HR() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDeleteStaff = async () => {
+    if (!staffToDelete) return;
+    
+    try {
+      const { error } = await mockApi.deleteStaff(staffToDelete.id);
+      if (error) throw error;
+      
+      toast.success("Staff member deleted successfully");
+      setDeleteDialogOpen(false);
+      setStaffToDelete(null);
+      fetchData();
+    } catch (error: any) {
+      toast.error("Failed to delete staff member: " + error.message);
+    }
+  };
+
+  const confirmDelete = (staff: any) => {
+    setStaffToDelete(staff);
+    setDeleteDialogOpen(true);
   };
 
   const presentCount = staffMembers.filter(s => s.status === 'present').length;
@@ -93,10 +138,12 @@ export default function HR() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-foreground">HR & Staff Management</h2>
+          <h2 className="text-headline-1 font-bold text-foreground">HR & Staff Management</h2>
           <p className="text-muted-foreground">Manage staff, attendance, leave, and payroll</p>
         </div>
-        <AddStaffDialog onSuccess={fetchData} />
+        <PermissionGate permission="hr:create">
+          <AddStaffDialog onSuccess={fetchData} />
+        </PermissionGate>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -126,40 +173,66 @@ export default function HR() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead>Role</TableHead>
+                  <TableHead>Position</TableHead>
                   <TableHead>Department</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Shift</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Phone</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center">Loading...</TableCell>
+                    <TableCell colSpan={6} className="text-center">Loading...</TableCell>
                   </TableRow>
                 ) : staffMembers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center">No staff members found</TableCell>
+                    <TableCell colSpan={6} className="text-center">No staff members found</TableCell>
                   </TableRow>
                 ) : (
                   staffMembers.map((staff) => (
                     <TableRow key={staff.id}>
                       <TableCell className="font-medium">{staff.name}</TableCell>
-                      <TableCell>{staff.role}</TableCell>
-                      <TableCell>{staff.department}</TableCell>
+                      <TableCell>{staff.position}</TableCell>
                       <TableCell>
-                        <Badge
-                          variant={staff.status === "present" ? "default" : "secondary"}
-                          className={
-                            staff.status === "present"
-                              ? "bg-success/10 text-success hover:bg-success/20"
-                              : "bg-warning/10 text-warning hover:bg-warning/20"
-                          }
-                        >
-                          {staff.status.charAt(0).toUpperCase() + staff.status.slice(1)}
+                        <Badge variant="outline" className="text-xs">
+                          {staff.department}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-sm">{staff.shift}</TableCell>
+                      <TableCell>{staff.email}</TableCell>
+                      <TableCell>{staff.phone}</TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="hover:bg-primary/10">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <PermissionGate permission="hr:read">
+                              <DropdownMenuItem onClick={() => setViewingStaff(staff)}>
+                                <Eye className="h-4 w-4 mr-2" />
+                                View Details
+                              </DropdownMenuItem>
+                            </PermissionGate>
+                            <PermissionGate permission="hr:update">
+                              <DropdownMenuItem onClick={() => setEditingStaff(staff)}>
+                                <Edit className="h-4 w-4 mr-2" />
+                                Edit
+                              </DropdownMenuItem>
+                            </PermissionGate>
+                            <PermissionGate permission="hr:delete">
+                              <DropdownMenuItem 
+                                onClick={() => confirmDelete(staff)}
+                                className="text-destructive focus:text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </PermissionGate>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
                     </TableRow>
                   ))
                 )}
@@ -202,7 +275,7 @@ export default function HR() {
                   leaveRequests.slice(0, 3).map((leave) => (
                     <div key={leave.id} className="border border-border rounded-lg p-3">
                       <p className="font-medium text-sm text-foreground">{leave.staff?.name}</p>
-                      <p className="text-xs text-muted-foreground mt-1">{leave.leave_type}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{leave.reason}</p>
                       <div className="flex items-center justify-between mt-2">
                         <span className="text-xs text-muted-foreground">
                           {new Date(leave.from_date).toLocaleDateString()} - {new Date(leave.to_date).toLocaleDateString()}
@@ -212,7 +285,9 @@ export default function HR() {
                           className={
                             leave.status === "approved"
                               ? "bg-success/10 text-success"
-                              : "bg-warning/10 text-warning"
+                              : leave.status === "pending"
+                              ? "bg-warning/10 text-warning"
+                              : "bg-destructive/10 text-destructive"
                           }
                         >
                           {leave.status.charAt(0).toUpperCase() + leave.status.slice(1)}
@@ -226,6 +301,48 @@ export default function HR() {
           </Card>
         </div>
       </div>
+
+      {/* Dialog Components */}
+      {editingStaff && (
+        <EditStaffDialog
+          staff={editingStaff}
+          open={!!editingStaff}
+          onOpenChange={(open) => !open && setEditingStaff(null)}
+          onSuccess={() => {
+            fetchData();
+            setEditingStaff(null);
+          }}
+        />
+      )}
+
+      {viewingStaff && (
+        <StaffProfileDialog
+          staff={viewingStaff}
+          open={!!viewingStaff}
+          onOpenChange={(open) => !open && setViewingStaff(null)}
+        />
+      )}
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Staff Member</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {staffToDelete?.name}? This action cannot be undone.
+              All associated records, leave requests, and documents will also be removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteStaff}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

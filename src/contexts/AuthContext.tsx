@@ -1,50 +1,78 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { mockApi } from '@/lib/mockData';
+import { User, UserRole, ROLE_PERMISSIONS } from '@/lib/rbac';
+
+interface MockSession {
+  access_token: string;
+  user: User;
+}
 
 interface AuthContextType {
   user: User | null;
-  session: Session | null;
+  session: MockSession | null;
   signOut: () => Promise<void>;
   loading: boolean;
+  updateUserRole: (role: UserRole) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSession] = useState<MockSession | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+    // Check for existing session in localStorage
+    const checkSession = async () => {
+      try {
+        const { data } = await mockApi.getSession();
+        if (data.session) {
+          setSession(data.session);
+          setUser(data.session.user);
+        }
+      } catch (error) {
+        console.error('Error checking session:', error);
+      } finally {
         setLoading(false);
       }
-    );
+    };
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    checkSession();
   }, []);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    await mockApi.signOut();
+    setSession(null);
+    setUser(null);
     navigate('/login');
   };
 
+  const updateUserRole = (role: UserRole) => {
+    if (user) {
+      const updatedUser = {
+        ...user,
+        role,
+        permissions: ROLE_PERMISSIONS[role]
+      };
+      setUser(updatedUser);
+      
+      // Update session in localStorage
+      if (session) {
+        const updatedSession = {
+          ...session,
+          user: updatedUser
+        };
+        localStorage.setItem('mock-session', JSON.stringify(updatedSession));
+        setSession(updatedSession);
+      }
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, session, signOut, loading }}>
+    <AuthContext.Provider value={{ user, session, signOut, loading, updateUserRole }}>
       {children}
     </AuthContext.Provider>
   );

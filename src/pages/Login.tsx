@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { mockApi } from "@/lib/mockData";
 import { z } from "zod";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -22,14 +22,7 @@ const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  useEffect(() => {
-    // Check if user is already logged in
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        navigate("/dashboard");
-      }
-    });
-  }, [navigate]);
+  // Session check is now handled at the app level
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,16 +31,16 @@ const Login = () => {
     try {
       const validated = authSchema.parse({ email, password });
       
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: validated.email,
-        password: validated.password,
-      });
+      const { data, error } = await mockApi.signIn(validated.email, validated.password);
 
       if (error) throw error;
 
+      // Store session in localStorage
+      localStorage.setItem('mock-session', JSON.stringify(data.session));
+
       toast({
         title: "Login successful",
-        description: "Welcome back to Dua Old Age Care",
+        description: "Welcome back to SilverSync",
       });
       navigate("/dashboard");
     } catch (error) {
@@ -76,24 +69,16 @@ const Login = () => {
     try {
       const validated = authSchema.parse({ email, password, fullName });
       
-      const redirectUrl = `${window.location.origin}/dashboard`;
-      
-      const { data, error } = await supabase.auth.signUp({
-        email: validated.email,
-        password: validated.password,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: {
-            full_name: validated.fullName,
-          },
-        },
-      });
+      const { data, error } = await mockApi.signUp(validated.email, validated.password);
 
       if (error) throw error;
 
+      // Store session in localStorage
+      localStorage.setItem('mock-session', JSON.stringify(data.session));
+
       toast({
         title: "Account created",
-        description: "Welcome to Dua Old Age Care",
+        description: "Welcome to SilverSync",
       });
       navigate("/dashboard");
     } catch (error) {
@@ -119,7 +104,7 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl">Dua Old Age Care</CardTitle>
+          <CardTitle className="text-2xl">SilverSync</CardTitle>
           <CardDescription>Sign in to your account or create a new one</CardDescription>
         </CardHeader>
         <CardContent>

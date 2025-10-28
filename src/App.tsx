@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { DashboardLayout } from "./components/DashboardLayout";
-import { AuthProvider } from "./contexts/AuthContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -14,6 +14,8 @@ import Documents from "./pages/Documents";
 import Accounting from "./pages/Accounting";
 import HR from "./pages/HR";
 import Reports from "./pages/Reports";
+import Settings from "./pages/Settings";
+import ResidentDetails from "./pages/ResidentDetails";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,22 +27,50 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout><Dashboard /></DashboardLayout></ProtectedRoute>} />
-            <Route path="/residents" element={<ProtectedRoute><DashboardLayout><Residents /></DashboardLayout></ProtectedRoute>} />
-            <Route path="/medical" element={<ProtectedRoute><DashboardLayout><Medical /></DashboardLayout></ProtectedRoute>} />
-            <Route path="/documents" element={<ProtectedRoute><DashboardLayout><Documents /></DashboardLayout></ProtectedRoute>} />
-            <Route path="/accounting" element={<ProtectedRoute><DashboardLayout><Accounting /></DashboardLayout></ProtectedRoute>} />
-            <Route path="/hr" element={<ProtectedRoute><DashboardLayout><HR /></DashboardLayout></ProtectedRoute>} />
-            <Route path="/reports" element={<ProtectedRoute><DashboardLayout><Reports /></DashboardLayout></ProtectedRoute>} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <AppRoutes />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
 );
+
+const AppRoutes = () => {
+  const { user, loading } = useAuth();
+
+  // Show loading spinner while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  return (
+    <Routes>
+      <Route 
+        path="/" 
+        element={
+          user ? (
+            <Navigate to="/dashboard" replace />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        } 
+      />
+      <Route path="/login" element={<Login />} />
+      <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout><Dashboard /></DashboardLayout></ProtectedRoute>} />
+      <Route path="/residents" element={<ProtectedRoute><DashboardLayout><Residents /></DashboardLayout></ProtectedRoute>} />
+      <Route path="/residents/:id" element={<ProtectedRoute><DashboardLayout><ResidentDetails /></DashboardLayout></ProtectedRoute>} />
+      <Route path="/medical" element={<ProtectedRoute><DashboardLayout><Medical /></DashboardLayout></ProtectedRoute>} />
+      <Route path="/documents" element={<ProtectedRoute><DashboardLayout><Documents /></DashboardLayout></ProtectedRoute>} />
+      <Route path="/accounting" element={<ProtectedRoute><DashboardLayout><Accounting /></DashboardLayout></ProtectedRoute>} />
+      <Route path="/hr" element={<ProtectedRoute><DashboardLayout><HR /></DashboardLayout></ProtectedRoute>} />
+      <Route path="/reports" element={<ProtectedRoute><DashboardLayout><Reports /></DashboardLayout></ProtectedRoute>} />
+      <Route path="/settings" element={<ProtectedRoute><DashboardLayout><Settings /></DashboardLayout></ProtectedRoute>} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+};
 
 export default App;

@@ -5,19 +5,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { mockApi } from "@/lib/mockData";
 import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
 import { Plus } from "lucide-react";
 
 const staffSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
-  role: z.string().trim().min(2, "Role is required").max(50),
+  position: z.string().trim().min(2, "Position is required").max(50),
   department: z.string().trim().min(2, "Department is required").max(50),
-  shift: z.string().trim().min(2, "Shift is required").max(50),
-  contact_number: z.string().trim().max(20).optional(),
-  salary: z.number().min(0).optional(),
-  status: z.enum(["present", "leave", "absent"]),
+  email: z.string().email("Invalid email address").max(100),
+  phone: z.string().trim().min(10, "Phone number is required").max(20),
+  hire_date: z.string().min(1, "Hire date is required"),
 });
 
 export function AddStaffDialog({ onSuccess }: { onSuccess?: () => void }) {
@@ -28,20 +27,18 @@ export function AddStaffDialog({ onSuccess }: { onSuccess?: () => void }) {
   
   const [formData, setFormData] = useState<{
     name: string;
-    role: string;
+    position: string;
     department: string;
-    shift: string;
-    contact_number: string;
-    salary: string;
-    status: "present" | "leave" | "absent";
+    email: string;
+    phone: string;
+    hire_date: string;
   }>({
     name: "",
-    role: "",
+    position: "",
     department: "",
-    shift: "",
-    contact_number: "",
-    salary: "",
-    status: "present",
+    email: "",
+    phone: "",
+    hire_date: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -50,21 +47,16 @@ export function AddStaffDialog({ onSuccess }: { onSuccess?: () => void }) {
     
     setIsLoading(true);
     try {
-      const validated = staffSchema.parse({
-        ...formData,
-        salary: formData.salary ? parseFloat(formData.salary) : undefined,
-      });
+      const validated = staffSchema.parse(formData);
 
-      const { error } = await supabase.from("staff").insert([{
+      const { error } = await mockApi.insertStaff({
         name: validated.name,
-        role: validated.role,
+        position: validated.position,
         department: validated.department,
-        shift: validated.shift,
-        contact_number: validated.contact_number || null,
-        salary: validated.salary || null,
-        status: validated.status,
-        user_id: user.id,
-      }]);
+        email: validated.email,
+        phone: validated.phone,
+        hire_date: validated.hire_date,
+      });
 
       if (error) throw error;
 
@@ -76,12 +68,11 @@ export function AddStaffDialog({ onSuccess }: { onSuccess?: () => void }) {
       setOpen(false);
       setFormData({
         name: "",
-        role: "",
+        position: "",
         department: "",
-        shift: "",
-        contact_number: "",
-        salary: "",
-        status: "present",
+        email: "",
+        phone: "",
+        hire_date: "",
       });
       onSuccess?.();
     } catch (error) {
@@ -129,11 +120,11 @@ export function AddStaffDialog({ onSuccess }: { onSuccess?: () => void }) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="role">Role *</Label>
+              <Label htmlFor="position">Position *</Label>
               <Input
-                id="role"
-                value={formData.role}
-                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                id="position"
+                value={formData.position}
+                onChange={(e) => setFormData({ ...formData, position: e.target.value })}
                 placeholder="e.g., Nurse, Caretaker"
                 required
                 disabled={isLoading}
@@ -154,64 +145,41 @@ export function AddStaffDialog({ onSuccess }: { onSuccess?: () => void }) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="shift">Shift *</Label>
-              <Select
-                value={formData.shift}
-                onValueChange={(value) => setFormData({ ...formData, shift: value })}
+              <Label htmlFor="hire_date">Hire Date *</Label>
+              <Input
+                id="hire_date"
+                type="date"
+                value={formData.hire_date}
+                onChange={(e) => setFormData({ ...formData, hire_date: e.target.value })}
+                required
                 disabled={isLoading}
-              >
-                <SelectTrigger id="shift">
-                  <SelectValue placeholder="Select shift" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Morning">Morning</SelectItem>
-                  <SelectItem value="Evening">Evening</SelectItem>
-                  <SelectItem value="Night">Night</SelectItem>
-                </SelectContent>
-              </Select>
+              />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="contact">Contact Number</Label>
+              <Label htmlFor="email">Email *</Label>
               <Input
-                id="contact"
-                type="tel"
-                value={formData.contact_number}
-                onChange={(e) => setFormData({ ...formData, contact_number: e.target.value })}
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                required
                 disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="salary">Salary</Label>
+              <Label htmlFor="phone">Phone *</Label>
               <Input
-                id="salary"
-                type="number"
-                step="0.01"
-                value={formData.salary}
-                onChange={(e) => setFormData({ ...formData, salary: e.target.value })}
+                id="phone"
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                required
                 disabled={isLoading}
               />
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="status">Status *</Label>
-            <Select
-              value={formData.status}
-              onValueChange={(value: "present" | "leave" | "absent") => setFormData({ ...formData, status: value })}
-              disabled={isLoading}
-            >
-              <SelectTrigger id="status">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="present">Present</SelectItem>
-                <SelectItem value="leave">On Leave</SelectItem>
-                <SelectItem value="absent">Absent</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
 
           <div className="flex justify-end gap-2 pt-4">

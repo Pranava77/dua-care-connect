@@ -1,72 +1,147 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, TrendingUp, Users, DollarSign, FileText, Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Download, TrendingUp, Users, DollarSign, FileText, Calendar, Clock } from "lucide-react";
+import { mockApi } from "@/lib/mockData";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+import { generateResidentReport, generateFinancialReport, generateMedicalReport } from "@/lib/pdfGenerator";
 
 export default function Reports() {
+  const [reports, setReports] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [generatingReport, setGeneratingReport] = useState<string | null>(null);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      fetchReports();
+    }
+  }, [user]);
+
+  const fetchReports = async () => {
+    try {
+      const { data, error } = await mockApi.getReports();
+      if (error) throw error;
+      setReports(data || []);
+    } catch (error: any) {
+      toast.error("Failed to load reports: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGenerateReport = async (reportId: string) => {
+    setGeneratingReport(reportId);
+    try {
+      const report = reports.find(r => r.id === reportId);
+      if (!report) throw new Error('Report not found');
+
+      // Generate actual PDF based on report type
+      switch (report.type) {
+        case 'residents':
+          const { data: residentsData } = await mockApi.getResidents();
+          await generateResidentReport(residentsData || [], user?.name || 'System');
+          break;
+        case 'financial':
+          const { data: invoicesData } = await mockApi.getInvoices();
+          await generateFinancialReport(invoicesData || [], user?.name || 'System');
+          break;
+        case 'medical':
+          const { data: medicalData } = await mockApi.getMedicalRecords();
+          const { data: prescriptionsData } = await mockApi.getPrescriptions();
+          await generateMedicalReport(medicalData || [], prescriptionsData || [], user?.name || 'System');
+          break;
+        default:
+          // Generic report generation
+          const { data, error } = await mockApi.generateReport(reportId);
+          if (error) throw error;
+          toast.success("Report generated successfully");
+          break;
+      }
+
+      toast.success(`${report.name} generated and downloaded successfully`);
+      fetchReports(); // Refresh the list to show updated last_generated time
+    } catch (error: any) {
+      toast.error("Failed to generate report: " + error.message);
+    } finally {
+      setGeneratingReport(null);
+    }
+  };
+
+  const handleExportAll = async () => {
+    try {
+      const { data, error } = await mockApi.exportData('reports');
+      if (error) throw error;
+      toast.success("Export started. Download will begin shortly.");
+      console.log("Export URL:", data.download_url);
+    } catch (error: any) {
+      toast.error("Failed to export reports: " + error.message);
+    }
+  };
+
   const reportCategories = [
     {
       title: "Operational Reports",
       icon: Users,
       color: "text-primary",
-      reports: [
-        { name: "Occupancy Report", period: "Monthly", lastGenerated: "2025-10-01" },
-        { name: "Admission & Discharge", period: "Monthly", lastGenerated: "2025-10-01" },
-        { name: "Room Utilization", period: "Quarterly", lastGenerated: "2025-09-30" },
-      ],
+      reports: reports.filter(r => r.category === 'Operational'),
     },
     {
       title: "Financial Reports",
       icon: DollarSign,
       color: "text-success",
-      reports: [
-        { name: "Revenue Report", period: "Monthly", lastGenerated: "2025-10-01" },
-        { name: "Payment Collection", period: "Weekly", lastGenerated: "2025-10-02" },
-        { name: "Outstanding Dues", period: "Monthly", lastGenerated: "2025-09-30" },
-      ],
+      reports: reports.filter(r => r.category === 'Financial'),
     },
     {
       title: "Clinical Reports",
       icon: FileText,
       color: "text-secondary",
-      reports: [
-        { name: "Prescription Due", period: "Weekly", lastGenerated: "2025-10-02" },
-        { name: "Medical Alerts", period: "Daily", lastGenerated: "2025-10-02" },
-        { name: "Health Checkup Status", period: "Monthly", lastGenerated: "2025-10-01" },
-      ],
+      reports: reports.filter(r => r.category === 'Clinical'),
     },
     {
       title: "HR Reports",
       icon: Calendar,
       color: "text-accent",
-      reports: [
-        { name: "Attendance Report", period: "Monthly", lastGenerated: "2025-10-01" },
-        { name: "Leave Summary", period: "Monthly", lastGenerated: "2025-10-01" },
-        { name: "Payroll Report", period: "Monthly", lastGenerated: "2025-09-30" },
-      ],
+      reports: reports.filter(r => r.category === 'HR'),
     },
   ];
 
   const quickStats = [
-    { label: "Total Reports", value: "156", trend: "+12 this month" },
-    { label: "Pending Reports", value: "3", trend: "Due this week" },
-    { label: "Automated Reports", value: "89%", trend: "Schedule active" },
+    { 
+      label: "Total Reports", 
+      value: reports.length.toString(), 
+      trend: "+12 this month",
+      icon: FileText
+    },
+    { 
+      label: "Active Reports", 
+      value: reports.filter(r => r.status === 'Active').length.toString(), 
+      trend: "Schedule active",
+      icon: TrendingUp
+    },
+    { 
+      label: "Generated Today", 
+      value: reports.filter(r => {
+        const today = new Date().toDateString();
+        return new Date(r.last_generated).toDateString() === today;
+      }).length.toString(), 
+      trend: "Recent activity",
+      icon: Clock
+    },
   ];
 
-  const scheduledReports = [
-    { name: "Monthly Financial Summary", schedule: "1st of every month", nextRun: "2025-11-01", status: "Active" },
-    { name: "Weekly Occupancy Report", schedule: "Every Monday", nextRun: "2025-10-07", status: "Active" },
-    { name: "Quarterly Compliance Report", schedule: "Quarterly", nextRun: "2025-12-31", status: "Active" },
-  ];
+  const scheduledReports = reports.filter(r => r.next_scheduled);
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-foreground">Reports & Analytics</h2>
-          <p className="text-muted-foreground">Generate and view comprehensive reports</p>
+          <h2 className="text-headline-1 font-bold text-foreground">Reports & Analytics</h2>
+          <p className="text-body text-muted-foreground">Generate and view comprehensive reports</p>
         </div>
-        <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+        <Button className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={handleExportAll}>
           <Download className="h-4 w-4 mr-2" />
           Export All
         </Button>
@@ -76,7 +151,8 @@ export default function Reports() {
         {quickStats.map((stat) => (
           <Card key={stat.label}>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <stat.icon className="h-4 w-4" />
                 {stat.label}
               </CardTitle>
             </CardHeader>
@@ -99,64 +175,95 @@ export default function Reports() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {category.reports.map((report, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-3 border border-border rounded-lg hover:bg-muted/50 transition-colors"
-                  >
-                    <div>
-                      <p className="font-medium text-foreground">{report.name}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs text-muted-foreground">{report.period}</span>
-                        <span className="text-xs text-muted-foreground">•</span>
-                        <span className="text-xs text-muted-foreground">
-                          Last: {report.lastGenerated}
-                        </span>
+                {loading ? (
+                  <div className="text-center text-sm text-muted-foreground py-4">Loading reports...</div>
+                ) : category.reports.length === 0 ? (
+                  <div className="text-center text-sm text-muted-foreground py-4">No reports available</div>
+                ) : (
+                  category.reports.map((report) => (
+                    <div
+                      key={report.id}
+                      className="flex items-center justify-between p-3 border border-border rounded-lg hover:bg-muted/50 transition-colors"
+                    >
+                      <div>
+                        <p className="font-medium text-foreground">{report.name}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs text-muted-foreground">{report.period}</span>
+                          <span className="text-xs text-muted-foreground">•</span>
+                          <span className="text-xs text-muted-foreground">
+                            Last: {new Date(report.last_generated).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge
+                          variant="outline"
+                          className={
+                            report.status === "Active"
+                              ? "bg-success/10 text-success hover:bg-success/20"
+                              : "bg-muted/10 text-muted-foreground"
+                          }
+                        >
+                          {report.status}
+                        </Badge>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleGenerateReport(report.id)}
+                          disabled={generatingReport === report.id}
+                        >
+                          {generatingReport === report.id ? (
+                            <Clock className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Download className="h-4 w-4" />
+                          )}
+                        </Button>
                       </div>
                     </div>
-                    <Button variant="outline" size="sm">
-                      <Download className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Scheduled Reports</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {scheduledReports.map((report, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between p-4 border border-border rounded-lg"
-              >
-                <div className="flex-1">
-                  <p className="font-medium text-foreground">{report.name}</p>
-                  <div className="flex items-center gap-4 mt-2">
-                    <span className="text-sm text-muted-foreground flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
-                      {report.schedule}
-                    </span>
-                    <span className="text-sm text-muted-foreground">Next: {report.nextRun}</span>
-                  </div>
-                </div>
-                <Badge
-                  variant="outline"
-                  className="bg-success/10 text-success hover:bg-success/20"
+      {scheduledReports.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Scheduled Reports</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {scheduledReports.map((report) => (
+                <div
+                  key={report.id}
+                  className="flex items-center justify-between p-4 border border-border rounded-lg"
                 >
-                  {report.status}
-                </Badge>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+                  <div className="flex-1">
+                    <p className="font-medium text-foreground">{report.name}</p>
+                    <div className="flex items-center gap-4 mt-2">
+                      <span className="text-sm text-muted-foreground flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {report.period} schedule
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        Next: {new Date(report.next_scheduled).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                  <Badge
+                    variant="outline"
+                    className="bg-success/10 text-success hover:bg-success/20"
+                  >
+                    {report.status}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

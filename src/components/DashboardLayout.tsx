@@ -1,8 +1,10 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
+import { GlobalSearch } from "./GlobalSearch";
 import { Bell, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,18 +20,26 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSearchResultClick = (result: any) => {
+    navigate(result.url);
+  };
 
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         <div className="flex-1 flex flex-col">
-          <header className="h-16 border-b border-border bg-card flex items-center justify-between px-6">
-            <div className="flex items-center gap-4">
+          <header className="h-16 border-b border-border bg-card flex items-center px-6 relative">
+            <div className="flex items-center gap-4 flex-shrink-0">
               <SidebarTrigger />
-              <h1 className="text-xl font-semibold text-foreground">Dua Old Age Care</h1>
+              <h1 className="text-headline-2 font-semibold text-foreground">SilverSync</h1>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center flex-1 px-8">
+              <GlobalSearch onResultClick={handleSearchResultClick} />
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
               <Button variant="ghost" size="icon">
                 <Bell className="h-5 w-5" />
               </Button>
