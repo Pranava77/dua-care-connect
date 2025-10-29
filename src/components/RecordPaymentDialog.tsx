@@ -153,7 +153,7 @@ export function RecordPaymentDialog({ onSuccess }: { onSuccess?: () => void }) {
               <SelectContent>
                 {invoices.map((invoice) => (
                   <SelectItem key={invoice.id} value={invoice.id}>
-                    {invoice.invoice_number} - {invoice.resident_name} (₹{invoice.amount.toLocaleString()})
+                    {invoice.invoice_number} - {invoice.resident_name} (£{invoice.amount.toLocaleString()})
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -161,7 +161,7 @@ export function RecordPaymentDialog({ onSuccess }: { onSuccess?: () => void }) {
             {selectedInvoice && (
               <div className="text-sm text-muted-foreground">
                 Due: {new Date(selectedInvoice.due_date).toLocaleDateString()} | 
-                Amount: ₹{selectedInvoice.amount.toLocaleString()}
+                Amount: £{selectedInvoice.amount.toLocaleString()}
               </div>
             )}
           </div>

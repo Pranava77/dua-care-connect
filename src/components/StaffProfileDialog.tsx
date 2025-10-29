@@ -89,7 +89,7 @@ export function StaffProfileDialog({ staff, open, onOpenChange }: StaffProfileDi
                 </p>
                 <p className="flex items-center gap-2 text-muted-foreground text-sm">
                   <DollarSign className="h-4 w-4" /> 
-                  <span className="font-medium text-foreground">₹{staff.salary.toLocaleString()}</span>
+                  <span className="font-medium text-foreground">£{staff.salary.toLocaleString()}</span>
                 </p>
               </div>
             </div>

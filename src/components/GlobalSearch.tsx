@@ -179,7 +179,7 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
             type: 'invoice',
             title: `Invoice ${invoice.invoice_number}`,
             subtitle: invoice.resident_name,
-            description: `₹${invoice.amount} - ${invoice.status}`,
+            description: `£${invoice.amount} - ${invoice.status}`,
             url: '/accounting',
             category: 'Invoices'
           });

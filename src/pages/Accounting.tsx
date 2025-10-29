@@ -146,10 +146,10 @@ export default function Accounting() {
   });
 
   const services = [
-    { name: "Room Charges", revenue: "₹8.5L", percentage: 46 },
-    { name: "Nursing Care", revenue: "₹5.2L", percentage: 28 },
-    { name: "Medical Services", revenue: "₹3.1L", percentage: 17 },
-    { name: "Diagnostics", revenue: "₹1.7L", percentage: 9 },
+    { name: "Room Charges", revenue: "£8.5L", percentage: 46 },
+    { name: "Nursing Care", revenue: "£5.2L", percentage: 28 },
+    { name: "Medical Services", revenue: "£3.1L", percentage: 17 },
+    { name: "Diagnostics", revenue: "£1.7L", percentage: 9 },
   ];
 
   const statusOptions = [
@@ -163,28 +163,28 @@ export default function Accounting() {
   const stats = [
     {
       title: "Total Revenue",
-      value: `₹${(financialStats.totalRevenue / 100000).toFixed(1)}L`,
+      value: `£${(financialStats.totalRevenue / 100000).toFixed(1)}L`,
       trend: "+12.5%",
       icon: TrendingUp,
       color: "text-success",
     },
     {
       title: "Outstanding Dues",
-      value: `₹${(financialStats.outstandingDues / 100000).toFixed(1)}L`,
+      value: `£${(financialStats.outstandingDues / 100000).toFixed(1)}L`,
       trend: "-5.2%",
       icon: TrendingDown,
       color: "text-warning",
     },
     {
       title: "This Month",
-      value: `₹${(financialStats.thisMonthRevenue / 100000).toFixed(1)}L`,
+      value: `£${(financialStats.thisMonthRevenue / 100000).toFixed(1)}L`,
       trend: "+8.3%",
       icon: DollarSign,
       color: "text-primary",
     },
     {
       title: "Paid Today",
-      value: `₹${(financialStats.paidToday / 1000).toFixed(0)}K`,
+      value: `£${(financialStats.paidToday / 1000).toFixed(0)}K`,
       trend: `${financialStats.paidTodayCount} payments`,
       icon: CreditCard,
       color: "text-secondary",
@@ -287,7 +287,7 @@ export default function Accounting() {
                     <TableRow key={invoice.id}>
                       <TableCell className="font-medium">{invoice.invoice_number}</TableCell>
                       <TableCell>{invoice.resident_name}</TableCell>
-                      <TableCell className="font-semibold">₹{invoice.amount.toLocaleString()}</TableCell>
+                      <TableCell className="font-semibold">£{invoice.amount.toLocaleString()}</TableCell>
                       <TableCell>
                         <Badge
                           variant={

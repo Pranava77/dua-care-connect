@@ -118,7 +118,7 @@ export function CreateInvoiceDialog({ onSuccess }: { onSuccess?: () => void }) {
         resident_id: validated.resident_id,
         resident_name: selectedResident?.name || '',
         amount: validated.amount,
-        currency: 'INR',
+        currency: 'GBP',
         status: 'Pending',
         due_date: validated.due_date,
         services: validated.services,
@@ -269,7 +269,7 @@ export function CreateInvoiceDialog({ onSuccess }: { onSuccess?: () => void }) {
             
             <div className="text-right">
               <div className="text-lg font-semibold">
-                Total: ₹{calculateTotal().toLocaleString()}
+                Total: £{calculateTotal().toLocaleString()}
               </div>
             </div>
           </div>

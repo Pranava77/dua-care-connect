@@ -30,7 +30,7 @@ export function InvoiceDetailsDialog({ invoice, open, onOpenChange }: InvoiceDet
   };
 
   const formatCurrency = (amount: number) => {
-    return `₹${amount.toLocaleString()}`;
+    return `£${amount.toLocaleString()}`;
   };
 
   return (

@@ -266,7 +266,7 @@ export function EditInvoiceDialog({ invoice, open, onOpenChange, onSuccess }: Ed
             
             <div className="text-right">
               <div className="text-lg font-semibold">
-                Total: ₹{calculateTotal().toLocaleString()}
+                Total: £{calculateTotal().toLocaleString()}
               </div>
             </div>
           </div>

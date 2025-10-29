@@ -253,7 +253,7 @@ export default function Dashboard() {
                   tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
                 />
                 <Tooltip 
-                  formatter={(value: number) => [`₹${(value / 1000).toFixed(0)}K`, '']}
+                  formatter={(value: number) => [`£${(value / 1000).toFixed(0)}K`, '']}
                   contentStyle={{
                     backgroundColor: 'hsl(var(--card))',
                     border: '1px solid hsl(var(--border))',
