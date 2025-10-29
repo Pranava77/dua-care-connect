@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { LandingNavbar } from "@/components/LandingNavbar";
 import { 
   Heart, 
   Users, 
@@ -17,8 +18,9 @@ import {
 const Landing = () => {
   return (
     <div className="w-full bg-background">
+      <LandingNavbar />
       {/* Section 1: Hero */}
-      <section className="w-full py-20 px-4 md:py-32">
+      <section className="w-full pt-32 pb-20 px-4 md:pt-40 md:pb-32">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
