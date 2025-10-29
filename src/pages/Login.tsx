@@ -244,6 +244,16 @@ const Login = () => {
           </CardContent>
         </Card>
 
+        {/* Documents Button */}
+        <Button
+          variant="outline"
+          className="w-full"
+          size="lg"
+          onClick={() => navigate("/documents")}
+        >
+          Documents
+        </Button>
+
         {/* Footer */}
         <p className="text-center text-caption text-muted-foreground">
           Secure authentication powered by SilverSync
