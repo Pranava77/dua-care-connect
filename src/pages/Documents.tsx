@@ -96,23 +96,12 @@ export default function Documents() {
         "Automated Billing & Payment Processing",
         "Inventory Management"
       ]
-    },
-    {
-      phase: "Phase 4",
-      timeline: "Q4 2024",
-      features: [
-        "AI-Powered Care Recommendations",
-        "Predictive Analytics",
-        "Voice Commands & Dictation",
-        "IoT Device Integration",
-        "Advanced Security & Compliance Features",
-        "Third-Party API Integrations"
-      ]
     }
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-background">
+      <div className="max-w-7xl mx-auto p-6 space-y-6">
       {/* Hero Section */}
       <Card className="bg-gradient-to-br from-primary/10 via-accent/10 to-success/10 border-primary/20">
         <CardContent className="p-8">
@@ -253,6 +242,7 @@ export default function Documents() {
           </CardContent>
         </Card>
       )}
+      </div>
     </div>
   );
 }
