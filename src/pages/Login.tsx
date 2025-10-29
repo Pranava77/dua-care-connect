@@ -137,9 +137,9 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-6xl space-y-8">
+      <div className="w-full max-w-5xl space-y-6">
         {/* Header Section */}
-        <div className="text-center space-y-2">
+        <div className="text-center space-y-2 mb-2">
           <h1 className="text-headline-1 text-gradient-primary font-bold">SilverSync</h1>
           <p className="text-body text-muted-foreground">
             Care Management Platform
@@ -147,9 +147,9 @@ const Login = () => {
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid md:grid-cols-2 gap-6 items-start">
+        <div className="grid md:grid-cols-2 gap-6 items-stretch">
           {/* Login Card */}
-          <Card className="border-border/50 shadow-xl">
+          <Card className="border-border/50 shadow-xl flex flex-col">
           <CardHeader className="space-y-2 pb-6">
             <CardTitle className="text-headline-2 text-center">Welcome</CardTitle>
             <CardDescription className="text-center">
@@ -248,14 +248,14 @@ const Login = () => {
         </Card>
 
         {/* QR Code Section */}
-        <Card className="border-border/50 shadow-xl">
+        <Card className="border-border/50 shadow-xl flex flex-col">
           <CardHeader className="space-y-2 pb-6">
             <CardTitle className="text-headline-2 text-center">Share QR Code</CardTitle>
             <CardDescription className="text-center">
               Scan to access the platform
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col items-center justify-center space-y-4">
+          <CardContent className="flex flex-col items-center justify-center space-y-4 flex-1">
             <div className="w-full max-w-xs aspect-square bg-muted rounded-lg flex items-center justify-center border-2 border-dashed border-muted-foreground/30">
               {/* QR Code - Place your QR code image at /public/qr-code.png or update the src below */}
               {!qrCodeError ? (
@@ -280,10 +280,10 @@ const Login = () => {
         </div>
 
         {/* Documents Button */}
-        <div className="w-full max-w-md mx-auto">
+        <div className="flex justify-center pt-2">
           <Button
             variant="outline"
-            className="w-full"
+            className="w-full max-w-md"
             size="lg"
             onClick={() => navigate("/documents")}
           >
@@ -292,7 +292,7 @@ const Login = () => {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-caption text-muted-foreground">
+        <p className="text-center text-caption text-muted-foreground pt-2">
           Secure authentication powered by SilverSync
         </p>
       </div>
