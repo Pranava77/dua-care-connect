@@ -209,7 +209,7 @@ export const generateFinancialReport = async (invoices: any[], generatedBy: stri
       { header: 'Due Date', dataKey: 'due_date', width: 30 },
     ],
     summary: [
-      { label: 'Total Amount', value: `₹${totalAmount.toLocaleString()}` },
+      { label: 'Total Amount', value: `£${totalAmount.toLocaleString()}` },
       { label: 'Paid Invoices', value: paidInvoices.length },
       { label: 'Pending Invoices', value: pendingInvoices.length },
       { label: 'Total Invoices', value: invoices.length },
