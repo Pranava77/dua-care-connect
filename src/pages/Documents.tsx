@@ -204,11 +204,8 @@ export default function Documents() {
         <CardContent className="space-y-6">
           {futurePlans.map((plan, index) => (
             <div key={index} className="border-l-4 border-accent pl-6 space-y-4">
-              <div className="flex items-center gap-3">
+              <div>
                 <h3 className="text-headline-3 font-bold text-foreground">{plan.phase}</h3>
-                <Badge variant="outline" className="bg-accent/10 text-accent border-accent/20">
-                  {plan.timeline}
-                </Badge>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {plan.features.map((feature, featureIndex) => (
