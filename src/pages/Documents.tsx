@@ -3,10 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Upload, Download, Eye, Search, Filter, Trash2 } from "lucide-react";
+import { FileText, Upload, Download, Eye, Search, Filter, Trash2, Users, Heart, DollarSign, UserCog, BarChart3, ArrowRight, LogIn } from "lucide-react";
 import { UploadDocumentDialog } from "@/components/UploadDocumentDialog";
 import { mockApi } from "@/lib/mockData";
 import { useAuth } from "@/contexts/AuthContext";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import {
   Select,
@@ -29,10 +30,54 @@ export default function Documents() {
   });
   const { user } = useAuth();
 
+  // Demo data for showcasing when not logged in
+  const demoDocuments = [
+    {
+      id: "demo-1",
+      name: "Sample Admission Form.pdf",
+      category: "Admission",
+      file_type: "PDF",
+      file_size: "245 KB",
+      uploaded_at: new Date().toISOString(),
+      status: "Verified",
+      description: "Example admission document"
+    },
+    {
+      id: "demo-2",
+      name: "Resident Medical History.pdf",
+      category: "Medical",
+      file_type: "PDF",
+      file_size: "1.2 MB",
+      uploaded_at: new Date(Date.now() - 86400000).toISOString(),
+      status: "Verified",
+      description: "Comprehensive medical records"
+    },
+    {
+      id: "demo-3",
+      name: "Financial Agreement.pdf",
+      category: "Financial",
+      file_type: "PDF",
+      file_size: "180 KB",
+      uploaded_at: new Date(Date.now() - 172800000).toISOString(),
+      status: "Pending",
+      description: "Payment and billing agreement"
+    }
+  ];
+
   useEffect(() => {
     if (user) {
       fetchDocuments();
       fetchStats();
+    } else {
+      // Show demo data when not authenticated
+      setDocuments(demoDocuments);
+      setStats({
+        admissionCount: 12,
+        kycCount: 8,
+        pendingCount: 3,
+        totalDocuments: 23
+      });
+      setLoading(false);
     }
   }, [user]);
 
@@ -59,6 +104,10 @@ export default function Documents() {
   };
 
   const handleViewDocument = (doc: any) => {
+    if (!user) {
+      toast.info("Please log in to view documents");
+      return;
+    }
     if (doc.file_data) {
       // Open file in new tab
       const newWindow = window.open();
@@ -78,6 +127,10 @@ export default function Documents() {
   };
 
   const handleDownloadDocument = (doc: any) => {
+    if (!user) {
+      toast.info("Please log in to download documents");
+      return;
+    }
     if (doc.file_data) {
       // Create download link
       const link = document.createElement('a');
@@ -124,12 +177,141 @@ export default function Documents() {
 
   return (
     <div className="space-y-6">
+      {/* Informational Section */}
+      <Card className="bg-gradient-to-br from-primary/10 via-accent/10 to-success/10 border-primary/20">
+        <CardContent className="p-8">
+          <div className="space-y-6">
+            <div className="text-center space-y-3">
+              <h1 className="text-headline-1 font-bold text-foreground">
+                Welcome to <span className="text-gradient-primary">SilverSync</span>
+              </h1>
+              <p className="text-body text-lg text-muted-foreground max-w-3xl mx-auto">
+                A comprehensive care management platform designed for modern healthcare facilities. 
+                Streamline operations, improve care quality, and manage everything in one powerful, intuitive system.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
+              <Card className="border-border/50">
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-primary/10 rounded-lg">
+                      <Users className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-foreground mb-1">Resident Management</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Complete resident profiles, admission tracking, and comprehensive care planning
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-border/50">
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-primary/10 rounded-lg">
+                      <Heart className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-foreground mb-1">Medical Records</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Electronic medical records, prescriptions, and treatment history management
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-border/50">
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-primary/10 rounded-lg">
+                      <FileText className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-foreground mb-1">Document Management</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Centralized storage for admission forms, KYC documents, and contracts
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-border/50">
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-primary/10 rounded-lg">
+                      <DollarSign className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-foreground mb-1">Accounting</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Billing, invoicing, payment tracking, and financial reporting
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-border/50">
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-primary/10 rounded-lg">
+                      <UserCog className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-foreground mb-1">HR & Staff Management</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Staff profiles, scheduling, attendance, and role-based access control
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-border/50">
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-primary/10 rounded-lg">
+                      <BarChart3 className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-foreground mb-1">Reports & Analytics</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Comprehensive reporting, analytics, and insights for data-driven decisions
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {!user && (
+              <div className="text-center pt-6 space-y-4">
+                <p className="text-body text-muted-foreground">
+                  Log in to access all features and manage your care facility
+                </p>
+                <Button asChild size="lg" className="gap-2">
+                  <Link to="/login">
+                    <LogIn className="h-4 w-4" />
+                    Sign In to Get Started
+                  </Link>
+                </Button>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-headline-1 font-bold text-foreground">Document Management</h2>
           <p className="text-body text-muted-foreground">Centralized document storage and retrieval</p>
         </div>
-        <UploadDocumentDialog onSuccess={() => { fetchDocuments(); fetchStats(); }} />
+        {user && <UploadDocumentDialog onSuccess={() => { fetchDocuments(); fetchStats(); }} />}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -198,7 +380,9 @@ export default function Documents() {
               <div className="text-center text-sm text-muted-foreground py-8">
                 {searchTerm || categoryFilter !== "all" 
                   ? "No documents match your search criteria" 
-                  : "No documents found. Upload your first document to get started."
+                  : user
+                    ? "No documents found. Upload your first document to get started."
+                    : "No documents match your search criteria. Log in to see your documents."
                 }
               </div>
             ) : (
@@ -269,14 +453,16 @@ export default function Documents() {
                     >
                       <Download className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      title="Delete document"
-                      onClick={() => handleDeleteDocument(doc.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    {user && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        title="Delete document"
+                        onClick={() => handleDeleteDocument(doc.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))
