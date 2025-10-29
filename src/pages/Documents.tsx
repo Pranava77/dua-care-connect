@@ -1,183 +1,119 @@
-import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Upload, Download, Eye, Search, Filter, Trash2, Users, Heart, DollarSign, UserCog, BarChart3, ArrowRight, LogIn } from "lucide-react";
-import { UploadDocumentDialog } from "@/components/UploadDocumentDialog";
-import { mockApi } from "@/lib/mockData";
+import { Users, Heart, DollarSign, UserCog, BarChart3, FileText, CheckCircle2, Circle, ArrowRight, LogIn, Home, Settings } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
-import { toast } from "sonner";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 export default function Documents() {
-  const [documents, setDocuments] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [stats, setStats] = useState({
-    admissionCount: 0,
-    kycCount: 0,
-    pendingCount: 0,
-    totalDocuments: 0
-  });
   const { user } = useAuth();
 
-  // Demo data for showcasing when not logged in
-  const demoDocuments = [
+  const features = [
     {
-      id: "demo-1",
-      name: "Sample Admission Form.pdf",
-      category: "Admission",
-      file_type: "PDF",
-      file_size: "245 KB",
-      uploaded_at: new Date().toISOString(),
-      status: "Verified",
-      description: "Example admission document"
+      icon: Home,
+      title: "Dashboard",
+      description: "Comprehensive overview with real-time metrics, alerts, and quick access to key information",
+      status: "active"
     },
     {
-      id: "demo-2",
-      name: "Resident Medical History.pdf",
-      category: "Medical",
-      file_type: "PDF",
-      file_size: "1.2 MB",
-      uploaded_at: new Date(Date.now() - 86400000).toISOString(),
-      status: "Verified",
-      description: "Comprehensive medical records"
+      icon: Users,
+      title: "Resident Management",
+      description: "Complete resident profiles, admission tracking, care planning, and resident history",
+      status: "active"
     },
     {
-      id: "demo-3",
-      name: "Financial Agreement.pdf",
-      category: "Financial",
-      file_type: "PDF",
-      file_size: "180 KB",
-      uploaded_at: new Date(Date.now() - 172800000).toISOString(),
-      status: "Pending",
-      description: "Payment and billing agreement"
+      icon: Heart,
+      title: "Medical Records (EMR)",
+      description: "Electronic medical records, prescriptions, treatment history, and medical alerts",
+      status: "active"
+    },
+    {
+      icon: FileText,
+      title: "Document Management",
+      description: "Centralized storage for admission forms, KYC documents, contracts, and medical files",
+      status: "active"
+    },
+    {
+      icon: DollarSign,
+      title: "Accounting & Billing",
+      description: "Invoice generation, payment tracking, financial reporting, and billing management",
+      status: "active"
+    },
+    {
+      icon: UserCog,
+      title: "HR & Staff Management",
+      description: "Staff profiles, scheduling, attendance tracking, and role-based access control",
+      status: "active"
+    },
+    {
+      icon: BarChart3,
+      title: "Reports & Analytics",
+      description: "Comprehensive reporting, data analytics, and insights for informed decision-making",
+      status: "active"
+    },
+    {
+      icon: Settings,
+      title: "System Settings",
+      description: "Configurable settings, user management, and system customization",
+      status: "active"
     }
   ];
 
-  useEffect(() => {
-    if (user) {
-      fetchDocuments();
-      fetchStats();
-    } else {
-      // Show demo data when not authenticated
-      setDocuments(demoDocuments);
-      setStats({
-        admissionCount: 12,
-        kycCount: 8,
-        pendingCount: 3,
-        totalDocuments: 23
-      });
-      setLoading(false);
-    }
-  }, [user]);
+  const mvpFeatures = [
+    "User Authentication & Role-Based Access Control",
+    "Dashboard with Key Metrics & Analytics",
+    "Resident Management & Profiles",
+    "Medical Records & Prescription Management",
+    "Document Storage & Management",
+    "Invoice Generation & Payment Tracking",
+    "Staff Management & Scheduling",
+    "Basic Reporting & Analytics",
+    "Responsive Web Interface",
+    "Secure Data Management"
+  ];
 
-  const fetchDocuments = async () => {
-    try {
-      const { data, error } = await mockApi.getDocuments();
-      if (error) throw error;
-      setDocuments(data || []);
-    } catch (error: any) {
-      toast.error("Failed to load documents: " + error.message);
-    } finally {
-      setLoading(false);
+  const futurePlans = [
+    {
+      phase: "Phase 2",
+      timeline: "Q2 2024",
+      features: [
+        "Mobile App (iOS & Android)",
+        "Advanced Analytics Dashboard",
+        "Automated Reminders & Notifications",
+        "Integration with Laboratory Systems",
+        "Electronic Signature Support",
+        "Bulk Document Upload"
+      ]
+    },
+    {
+      phase: "Phase 3",
+      timeline: "Q3 2024",
+      features: [
+        "Multi-Facility Management",
+        "Advanced Reporting with Custom Templates",
+        "Telemedicine Integration",
+        "Family Portal Access",
+        "Automated Billing & Payment Processing",
+        "Inventory Management"
+      ]
+    },
+    {
+      phase: "Phase 4",
+      timeline: "Q4 2024",
+      features: [
+        "AI-Powered Care Recommendations",
+        "Predictive Analytics",
+        "Voice Commands & Dictation",
+        "IoT Device Integration",
+        "Advanced Security & Compliance Features",
+        "Third-Party API Integrations"
+      ]
     }
-  };
-
-  const fetchStats = async () => {
-    try {
-      const { data, error } = await mockApi.getDocumentStats();
-      if (error) throw error;
-      setStats(data);
-    } catch (error: any) {
-      console.error("Failed to load stats:", error.message);
-    }
-  };
-
-  const handleViewDocument = (doc: any) => {
-    if (!user) {
-      toast.info("Please log in to view documents");
-      return;
-    }
-    if (doc.file_data) {
-      // Open file in new tab
-      const newWindow = window.open();
-      if (newWindow) {
-        newWindow.document.write(`
-          <html>
-            <head><title>${doc.name}</title></head>
-            <body style="margin:0; padding:0;">
-              <iframe src="${doc.file_data}" width="100%" height="100%" style="border:none;"></iframe>
-            </body>
-          </html>
-        `);
-      }
-    } else {
-      toast.error("File data not available");
-    }
-  };
-
-  const handleDownloadDocument = (doc: any) => {
-    if (!user) {
-      toast.info("Please log in to download documents");
-      return;
-    }
-    if (doc.file_data) {
-      // Create download link
-      const link = document.createElement('a');
-      link.href = doc.file_data;
-      link.download = doc.name;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } else {
-      toast.error("File data not available");
-    }
-  };
-
-  const handleDeleteDocument = async (id: string) => {
-    if (window.confirm("Are you sure you want to delete this document?")) {
-      try {
-        const { error } = await mockApi.deleteDocument(id);
-        if (error) throw error;
-        toast.success("Document deleted successfully");
-        fetchDocuments();
-        fetchStats();
-      } catch (error: any) {
-        toast.error("Failed to delete document: " + error.message);
-      }
-    }
-  };
-
-  const filteredDocuments = documents.filter((doc) => {
-    const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         doc.resident_name?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = categoryFilter === "all" || doc.category === categoryFilter;
-    return matchesSearch && matchesCategory;
-  });
-
-  const categories = [
-    { value: "all", label: "All Categories" },
-    { value: "Admission", label: "Admission" },
-    { value: "KYC", label: "KYC" },
-    { value: "Consent", label: "Consent" },
-    { value: "Contract", label: "Contract" },
-    { value: "Financial", label: "Financial" },
-    { value: "Medical", label: "Medical" },
   ];
 
   return (
     <div className="space-y-6">
-      {/* Informational Section */}
+      {/* Hero Section */}
       <Card className="bg-gradient-to-br from-primary/10 via-accent/10 to-success/10 border-primary/20">
         <CardContent className="p-8">
           <div className="space-y-6">
@@ -191,109 +127,8 @@ export default function Documents() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
-              <Card className="border-border/50">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 bg-primary/10 rounded-lg">
-                      <Users className="h-6 w-6 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-foreground mb-1">Resident Management</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Complete resident profiles, admission tracking, and comprehensive care planning
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-border/50">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 bg-primary/10 rounded-lg">
-                      <Heart className="h-6 w-6 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-foreground mb-1">Medical Records</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Electronic medical records, prescriptions, and treatment history management
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-border/50">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 bg-primary/10 rounded-lg">
-                      <FileText className="h-6 w-6 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-foreground mb-1">Document Management</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Centralized storage for admission forms, KYC documents, and contracts
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-border/50">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 bg-primary/10 rounded-lg">
-                      <DollarSign className="h-6 w-6 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-foreground mb-1">Accounting</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Billing, invoicing, payment tracking, and financial reporting
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-border/50">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 bg-primary/10 rounded-lg">
-                      <UserCog className="h-6 w-6 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-foreground mb-1">HR & Staff Management</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Staff profiles, scheduling, attendance, and role-based access control
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-border/50">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 bg-primary/10 rounded-lg">
-                      <BarChart3 className="h-6 w-6 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-foreground mb-1">Reports & Analytics</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Comprehensive reporting, analytics, and insights for data-driven decisions
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
             {!user && (
-              <div className="text-center pt-6 space-y-4">
-                <p className="text-body text-muted-foreground">
-                  Log in to access all features and manage your care facility
-                </p>
+              <div className="text-center pt-4">
                 <Button asChild size="lg" className="gap-2">
                   <Link to="/login">
                     <LogIn className="h-4 w-4" />
@@ -306,170 +141,118 @@ export default function Documents() {
         </CardContent>
       </Card>
 
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-headline-1 font-bold text-foreground">Document Management</h2>
-          <p className="text-body text-muted-foreground">Centralized document storage and retrieval</p>
+      {/* Features Section */}
+      <div>
+        <div className="mb-6">
+          <h2 className="text-headline-2 font-bold text-foreground mb-2">Core Features</h2>
+          <p className="text-body text-muted-foreground">
+            Comprehensive tools designed to streamline your care facility operations
+          </p>
         </div>
-        {user && <UploadDocumentDialog onSuccess={() => { fetchDocuments(); fetchStats(); }} />}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {features.map((feature) => {
+            const Icon = feature.icon;
+            return (
+              <Card key={feature.title} className="border-border/50 hover:shadow-lg transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-primary/10 rounded-lg">
+                      <Icon className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-semibold text-foreground">{feature.title}</h3>
+                        <Badge variant="outline" className="bg-success/10 text-success border-success/20 text-xs">
+                          Active
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {feature.description}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Admission Forms</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-primary">{stats.admissionCount}</p>
-            <p className="text-sm text-muted-foreground mt-1">Total documents</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">KYC Documents</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-secondary">{stats.kycCount}</p>
-            <p className="text-sm text-muted-foreground mt-1">Total documents</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Pending Review</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-warning">{stats.pendingCount}</p>
-            <p className="text-sm text-muted-foreground mt-1">Requires attention</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
+      {/* MVP Section */}
+      <Card className="border-primary/20">
         <CardHeader>
-          <div className="flex items-center gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search documents by name or resident..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((category) => (
-                  <SelectItem key={category.value} value={category.value}>
-                    {category.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <CardTitle className="text-headline-2 font-bold flex items-center gap-2">
+            <CheckCircle2 className="h-6 w-6 text-primary" />
+            Minimum Viable Product (MVP)
+          </CardTitle>
+          <p className="text-body text-muted-foreground">
+            Current version includes all essential features for effective care facility management
+          </p>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {loading ? (
-              <div className="text-center text-sm text-muted-foreground py-8">Loading documents...</div>
-            ) : filteredDocuments.length === 0 ? (
-              <div className="text-center text-sm text-muted-foreground py-8">
-                {searchTerm || categoryFilter !== "all" 
-                  ? "No documents match your search criteria" 
-                  : user
-                    ? "No documents found. Upload your first document to get started."
-                    : "No documents match your search criteria. Log in to see your documents."
-                }
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {mvpFeatures.map((feature, index) => (
+              <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                <CheckCircle2 className="h-5 w-5 text-success flex-shrink-0" />
+                <span className="text-sm text-foreground">{feature}</span>
               </div>
-            ) : (
-              filteredDocuments.map((doc) => (
-                <div
-                  key={doc.id}
-                  className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary/10 rounded">
-                      <FileText className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-foreground">{doc.name}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs text-muted-foreground">{doc.category}</span>
-                        <span className="text-xs text-muted-foreground">•</span>
-                        <span className="text-xs text-muted-foreground">{doc.file_type}</span>
-                        <span className="text-xs text-muted-foreground">•</span>
-                        <span className="text-xs text-muted-foreground">{doc.file_size}</span>
-                        <span className="text-xs text-muted-foreground">•</span>
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(doc.uploaded_at).toLocaleDateString()}
-                        </span>
-                      </div>
-                      {doc.resident_name && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Resident: {doc.resident_name}
-                        </p>
-                      )}
-                      {doc.description && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {doc.description}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge
-                      variant={
-                        doc.status === "Verified" || doc.status === "Active" || doc.status === "Paid"
-                          ? "default"
-                          : "secondary"
-                      }
-                      className={
-                        doc.status === "Verified" || doc.status === "Active" || doc.status === "Paid"
-                          ? "bg-success/10 text-success hover:bg-success/20"
-                          : doc.status === "Pending"
-                          ? "bg-warning/10 text-warning hover:bg-warning/20"
-                          : ""
-                      }
-                    >
-                      {doc.status}
-                    </Badge>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      title="View document"
-                      onClick={() => handleViewDocument(doc)}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      title="Download document"
-                      onClick={() => handleDownloadDocument(doc)}
-                    >
-                      <Download className="h-4 w-4" />
-                    </Button>
-                    {user && (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        title="Delete document"
-                        onClick={() => handleDeleteDocument(doc.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ))
-            )}
+            ))}
           </div>
         </CardContent>
       </Card>
+
+      {/* Future Plans / Roadmap */}
+      <Card className="border-accent/20">
+        <CardHeader>
+          <CardTitle className="text-headline-2 font-bold flex items-center gap-2">
+            <ArrowRight className="h-6 w-6 text-accent" />
+            Development Roadmap
+          </CardTitle>
+          <p className="text-body text-muted-foreground">
+            Planned features and enhancements coming in future releases
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {futurePlans.map((plan, index) => (
+            <div key={index} className="border-l-4 border-accent pl-6 space-y-4">
+              <div className="flex items-center gap-3">
+                <h3 className="text-headline-3 font-bold text-foreground">{plan.phase}</h3>
+                <Badge variant="outline" className="bg-accent/10 text-accent border-accent/20">
+                  {plan.timeline}
+                </Badge>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {plan.features.map((feature, featureIndex) => (
+                  <div key={featureIndex} className="flex items-center gap-3 p-3 rounded-lg bg-accent/5">
+                    <Circle className="h-4 w-4 text-accent flex-shrink-0 fill-accent/20" />
+                    <span className="text-sm text-foreground">{feature}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      {/* Call to Action */}
+      {!user && (
+        <Card className="bg-primary/5 border-primary/20">
+          <CardContent className="p-8 text-center space-y-4">
+            <h3 className="text-headline-2 font-bold text-foreground">
+              Ready to Transform Your Care Facility?
+            </h3>
+            <p className="text-body text-muted-foreground max-w-2xl mx-auto">
+              Join modern care facilities using SilverSync to deliver exceptional care and streamline operations.
+            </p>
+            <Button asChild size="lg" className="gap-2">
+              <Link to="/login">
+                <LogIn className="h-4 w-4" />
+                Get Started Today
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
