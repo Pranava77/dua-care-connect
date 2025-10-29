@@ -282,7 +282,7 @@ const Login = () => {
               {/* QR Code - Place your QR code image at /public/qr-code.png or update the src below */}
               {!qrCodeError ? (
                 <img 
-                  src="/qr-code.png" 
+                  src="/qe-silversync.png" 
                   alt="QR Code" 
                   className="w-full h-full object-contain p-4"
                   onError={() => setQrCodeError(true)}
