@@ -195,6 +195,17 @@ const Login = () => {
                   >
                     {isLoading ? "Logging in..." : "Login"}
                   </Button>
+                  {/* Agency Logo */}
+                  <div className="flex justify-center items-center mt-6 pt-4 border-t border-border/50">
+                    <img 
+                      src="/agency-logo.png" 
+                      alt="Agency Logo" 
+                      className="h-8 opacity-70 hover:opacity-100 transition-opacity"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  </div>
                 </form>
               </TabsContent>
               
@@ -241,6 +252,17 @@ const Login = () => {
                   >
                     {isLoading ? "Creating account..." : "Sign Up"}
                   </Button>
+                  {/* Agency Logo */}
+                  <div className="flex justify-center items-center mt-6 pt-4 border-t border-border/50">
+                    <img 
+                      src="/agency-logo.png" 
+                      alt="Agency Logo" 
+                      className="h-8 opacity-70 hover:opacity-100 transition-opacity"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  </div>
                 </form>
               </TabsContent>
             </Tabs>
