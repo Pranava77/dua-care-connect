@@ -7,7 +7,6 @@ import { DashboardLayout } from "./components/DashboardLayout";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import Login from "./pages/Login";
-import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Residents from "./pages/Residents";
 import Medical from "./pages/Medical";
@@ -55,7 +54,7 @@ const AppRoutes = () => {
           user ? (
             <Navigate to="/dashboard" replace />
           ) : (
-            <Landing />
+            <Login />
           )
         } 
       />
