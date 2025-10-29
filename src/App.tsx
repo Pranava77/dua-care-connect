@@ -58,7 +58,13 @@ const AppRoutes = () => {
           )
         } 
       />
-      <Route path="/login" element={<Login />} />
+      <Route path="/login" element={
+        user ? (
+          <Navigate to="/dashboard" replace />
+        ) : (
+          <Login />
+        )
+      } />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout><Dashboard /></DashboardLayout></ProtectedRoute>} />
       <Route path="/residents" element={<ProtectedRoute><DashboardLayout><Residents /></DashboardLayout></ProtectedRoute>} />
       <Route path="/residents/:id" element={<ProtectedRoute><DashboardLayout><ResidentDetails /></DashboardLayout></ProtectedRoute>} />

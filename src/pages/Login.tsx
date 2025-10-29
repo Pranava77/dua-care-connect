@@ -1,10 +1,11 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { mockApi } from "@/lib/mockData";
+import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -20,7 +21,16 @@ const Login = () => {
   const [fullName, setFullName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+  const { refreshSession, user, loading } = useAuth();
+
+  // Navigate to dashboard when user becomes authenticated
+  useEffect(() => {
+    if (!loading && user && location.pathname === "/login") {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [user, loading, location.pathname, navigate]);
 
   // Session check is now handled at the app level
 
@@ -38,11 +48,23 @@ const Login = () => {
       // Store session in localStorage
       localStorage.setItem('mock-session', JSON.stringify(data.session));
 
+      // Refresh the auth context to update user state
+      await refreshSession();
+
       toast({
         title: "Login successful",
         description: "Welcome back to SilverSync",
       });
-      navigate("/dashboard");
+      
+      // Force a small delay to ensure state updates, then navigate as fallback
+      // The useEffect will handle navigation if state propagates, but this ensures it happens
+      setTimeout(() => {
+        // Double-check user state before navigating
+        const currentSession = localStorage.getItem('mock-session');
+        if (currentSession) {
+          navigate("/dashboard", { replace: true });
+        }
+      }, 100);
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast({
@@ -76,11 +98,23 @@ const Login = () => {
       // Store session in localStorage
       localStorage.setItem('mock-session', JSON.stringify(data.session));
 
+      // Refresh the auth context to update user state
+      await refreshSession();
+
       toast({
         title: "Account created",
         description: "Welcome to SilverSync",
       });
-      navigate("/dashboard");
+      
+      // Force a small delay to ensure state updates, then navigate as fallback
+      // The useEffect will handle navigation if state propagates, but this ensures it happens
+      setTimeout(() => {
+        // Double-check user state before navigating
+        const currentSession = localStorage.getItem('mock-session');
+        if (currentSession) {
+          navigate("/dashboard", { replace: true });
+        }
+      }, 100);
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast({

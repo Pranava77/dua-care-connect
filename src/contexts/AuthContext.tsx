@@ -14,6 +14,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   loading: boolean;
   updateUserRole: (role: UserRole) => void;
+  refreshSession: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,22 +26,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check for existing session in localStorage
-    const checkSession = async () => {
+    // Check for existing session in localStorage synchronously first
+    const storedSession = localStorage.getItem('mock-session');
+    if (storedSession) {
       try {
-        const { data } = await mockApi.getSession();
-        if (data.session) {
-          setSession(data.session);
-          setUser(data.session.user);
-        }
+        const parsed = JSON.parse(storedSession);
+        setSession(parsed);
+        setUser(parsed.user);
       } catch (error) {
-        console.error('Error checking session:', error);
-      } finally {
-        setLoading(false);
+        console.error('Error parsing session:', error);
+        localStorage.removeItem('mock-session');
       }
-    };
-
-    checkSession();
+    }
+    setLoading(false);
   }, []);
 
   const signOut = async () => {
@@ -71,8 +69,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const refreshSession = async () => {
+    try {
+      const { data } = await mockApi.getSession();
+      if (data.session) {
+        setSession(data.session);
+        setUser(data.session.user);
+      } else {
+        setSession(null);
+        setUser(null);
+      }
+    } catch (error) {
+      console.error('Error refreshing session:', error);
+      setSession(null);
+      setUser(null);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, session, signOut, loading, updateUserRole }}>
+    <AuthContext.Provider value={{ user, session, signOut, loading, updateUserRole, refreshSession }}>
       {children}
     </AuthContext.Provider>
   );
