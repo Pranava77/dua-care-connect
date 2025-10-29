@@ -20,6 +20,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [qrCodeError, setQrCodeError] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -136,7 +137,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md space-y-8">
+      <div className="w-full max-w-6xl space-y-8">
         {/* Header Section */}
         <div className="text-center space-y-2">
           <h1 className="text-headline-1 text-gradient-primary font-bold">SilverSync</h1>
@@ -145,8 +146,10 @@ const Login = () => {
           </p>
         </div>
 
-        {/* Login Card */}
-        <Card className="border-border/50 shadow-xl">
+        {/* Main Content Grid */}
+        <div className="grid md:grid-cols-2 gap-6 items-start">
+          {/* Login Card */}
+          <Card className="border-border/50 shadow-xl">
           <CardHeader className="space-y-2 pb-6">
             <CardTitle className="text-headline-2 text-center">Welcome</CardTitle>
             <CardDescription className="text-center">
@@ -244,15 +247,49 @@ const Login = () => {
           </CardContent>
         </Card>
 
+        {/* QR Code Section */}
+        <Card className="border-border/50 shadow-xl">
+          <CardHeader className="space-y-2 pb-6">
+            <CardTitle className="text-headline-2 text-center">Share QR Code</CardTitle>
+            <CardDescription className="text-center">
+              Scan to access the platform
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center justify-center space-y-4">
+            <div className="w-full max-w-xs aspect-square bg-muted rounded-lg flex items-center justify-center border-2 border-dashed border-muted-foreground/30">
+              {/* QR Code - Place your QR code image at /public/qr-code.png or update the src below */}
+              {!qrCodeError ? (
+                <img 
+                  src="/qr-code.png" 
+                  alt="QR Code" 
+                  className="w-full h-full object-contain p-4"
+                  onError={() => setQrCodeError(true)}
+                />
+              ) : (
+                <div className="text-muted-foreground text-center p-4">
+                  <p className="text-sm">QR Code</p>
+                  <p className="text-xs mt-1">Coming Soon</p>
+                </div>
+              )}
+            </div>
+            <p className="text-sm text-muted-foreground text-center max-w-xs">
+              Point your camera at this QR code to quickly access SilverSync
+            </p>
+          </CardContent>
+        </Card>
+        </div>
+
         {/* Documents Button */}
-        <Button
-          variant="outline"
-          className="w-full"
-          size="lg"
-          onClick={() => navigate("/documents")}
-        >
-          Documents
-        </Button>
+        <div className="w-full max-w-md mx-auto">
+          <Button
+            variant="outline"
+            className="w-full"
+            size="lg"
+            onClick={() => navigate("/documents")}
+          >
+            Documents
+          </Button>
+        </div>
 
         {/* Footer */}
         <p className="text-center text-caption text-muted-foreground">
