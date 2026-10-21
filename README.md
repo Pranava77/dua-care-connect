@@ -7,7 +7,7 @@ React + Vite frontend (`src/`) and a FastAPI backend (`backend/`) with role-base
 ```bash
 # Backend (Python 3.11–3.13, uses uv)
 cd backend
-cp .env.example .env            # add GEMINI_API_KEY to enable AI features
+cp .env.example .env            # optional: GEMINI_API_KEY (or add it later in Settings)
 uv sync
 uv run python -m app.scripts.seed   # demo data + vector index
 uv run uvicorn app.main:app --reload --port 8000
@@ -19,7 +19,7 @@ npm run dev                      # http://localhost:8080, proxies /api to :8000
 
 Demo logins: `admin@`, `doctor@`, `nurse@`, `accountant@`, `hr@`, `receptionist@silversync.com`, with the password set by `SEED_PASSWORD` in `backend/.env`.
 
-Without `GEMINI_API_KEY` everything except the LLM works: CRUD, auth, alerts, and search (on an offline hashing embedder). After adding a key, run `uv run python -m app.scripts.reindex` so the index uses Gemini embeddings.
+**Gemini key:** sign in as an admin and open **Settings → AI Provider** to paste your own key and pick a chat model. The key is verified with Google, stored encrypted (derived from `JWT_SECRET`) and applied immediately without a restart; the search index is rebuilt for Gemini embeddings in the background. Alternatively set `GEMINI_API_KEY` in `backend/.env` — a key saved in Settings takes precedence. Without any key everything except the LLM works (search uses an offline hashing embedder).
 
 Docker: `docker compose up --build`.
 

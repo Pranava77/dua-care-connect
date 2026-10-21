@@ -39,7 +39,7 @@ export function AiReportDrafts() {
       </CardHeader>
       <CardContent>
         {status && !status.enabled ? (
-          <p className="text-sm text-muted-foreground">AI is not configured on the server (set GEMINI_API_KEY).</p>
+          <p className="text-sm text-muted-foreground">AI is not set up yet. An administrator can add a Gemini API key in Settings → AI Provider.</p>
         ) : (
           <div className="flex flex-wrap gap-2">
             {kinds.map((k) => (

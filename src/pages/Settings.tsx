@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { UserProfileCard } from "@/components/UserProfileCard";
 import { PermissionGate } from "@/components/PermissionGate";
 import { toast } from "sonner";
+import { AiProviderCard } from "@/features/ai-settings/AiProviderCard";
 
 export default function SettingsPage() {
   const { user } = useAuth();
@@ -95,6 +96,11 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* AI provider - bring your own Gemini key */}
+      <PermissionGate permission="system:settings">
+        <AiProviderCard />
+      </PermissionGate>
 
       {/* System Settings - Admin Only */}
       <PermissionGate permission="system:admin">

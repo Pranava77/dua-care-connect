@@ -12,12 +12,7 @@ router = APIRouter(prefix="/ai", tags=["ai"])
 
 @router.get("/status")
 def status(_: AuthUser = Depends(current_user), container: Container = Depends(get_container)):
-    s = container.settings
-    return ok({
-        "enabled": container.ai_enabled,
-        "chat_model": s.gemini_chat_model if container.ai_enabled else None,
-        "embeddings": getattr(container.embeddings, "name", "unknown"),
-    })
+    return ok(container.ai_status())
 
 
 @router.get("/alerts")

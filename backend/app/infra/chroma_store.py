@@ -26,6 +26,14 @@ class ChromaVectorStore:
         self._namespace = re.sub(r"[^A-Za-z0-9._-]", "-", namespace)
         self._collections: dict[str, Any] = {}
 
+    def use_namespace(self, namespace: str) -> None:
+        """Point at the collections for another embedding model (vectors of different models never mix)."""
+        self._namespace = re.sub(r"[^A-Za-z0-9._-]", "-", namespace)
+        self._collections.clear()
+
+    def is_empty(self, collection: str) -> bool:
+        return self._col(collection).count() == 0
+
     def _name(self, collection: str) -> str:
         return f"{collection}__{self._namespace}"
 

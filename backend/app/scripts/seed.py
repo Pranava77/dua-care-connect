@@ -84,6 +84,8 @@ def main() -> None:
     parser.add_argument("--reset", action="store_true", help="drop all data before seeding")
     args = parser.parse_args()
     container = Container(get_settings(), background_events=False)
+    container.init_db()
+    container.load_saved_ai_settings()  # index with the embedding model chosen in Settings, if any
     seed(container, reset=args.reset)
 
 

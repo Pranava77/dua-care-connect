@@ -144,10 +144,26 @@ class GeminiLLM:
         return response.text or ""
 
 
+def verify_gemini_key(api_key: str, model: str) -> None:
+    """Checks the key works and the model exists, with one cheap metadata call. Raises LLMUnavailableError."""
+    # Keep a reference: a temporary client is garbage-collected (and closed) before the request runs.
+    client = genai.Client(api_key=api_key)
+    try:
+        client.models.get(model=model)
+    except errors.APIError as exc:
+        reason = "the API key was rejected" if exc.code in (400, 401, 403) else f"the model '{model}' was not found" \
+            if exc.code == 404 else (exc.message or str(exc))
+        raise LLMUnavailableError(f"Could not verify Gemini settings: {reason}.") from exc
+    except Exception as exc:  # network problems
+        raise LLMUnavailableError(f"Could not reach Gemini: {exc}") from exc
+    finally:
+        client.close()
+
+
 class UnconfiguredLLM:
     """Placeholder used when no GEMINI_API_KEY is set: every call explains how to enable AI."""
 
-    message = "AI features are disabled: set GEMINI_API_KEY in backend/.env and restart the API."
+    message = "AI is not set up yet: an administrator can add a Gemini API key in Settings → AI Provider."
 
     async def stream(self, **_: Any) -> AsyncIterator[LLMChunk]:
         raise LLMUnavailableError(self.message)

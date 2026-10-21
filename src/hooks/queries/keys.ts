@@ -19,6 +19,7 @@ export const keys = {
   aiStatus: ["ai", "status"] as const,
   chatSessions: ["ai", "sessions"] as const,
   search: ["ai", "search"] as const,
+  aiSettings: ["settings", "ai"] as const,
 };
 
 /** Returns a callback invalidating the given query families plus derived views (dashboard, alerts, search). */

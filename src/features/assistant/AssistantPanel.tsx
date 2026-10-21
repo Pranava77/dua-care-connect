@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { History, Loader2, Plus, SendHorizonal, Sparkles, Square } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -115,7 +115,8 @@ export function AssistantPanel() {
         <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
           {disabled && (
             <div className="rounded-lg border border-warning/40 bg-warning/10 p-3 text-sm">
-              AI is not configured on the server. Add <code>GEMINI_API_KEY</code> to <code>backend/.env</code> and restart the API.
+              AI is not set up yet. An administrator can add a Gemini API key under{" "}
+              <Link to="/settings" className="underline" onClick={() => setOpen(false)}>Settings → AI Provider</Link>.
             </div>
           )}
           {turns.length === 0 && !disabled && (

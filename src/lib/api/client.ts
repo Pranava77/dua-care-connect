@@ -75,6 +75,7 @@ export const api = {
   post: <T>(path: string, body?: Body) => request<T>(path, { method: "POST", body }),
   patch: <T>(path: string, body: Body) => request<T>(path, { method: "PATCH", body }),
   delete: (path: string) => request<null>(path, { method: "DELETE" }),
+  request: <T>(path: string, method: string, body?: Body) => request<T>(path, { method, body }),
 };
 
 export function query(params: Record<string, string | number | null | undefined>): string {
