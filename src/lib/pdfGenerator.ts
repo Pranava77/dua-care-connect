@@ -244,3 +244,49 @@ export const generateMedicalReport = async (medicalRecords: any[], prescriptions
 
   generator.generateReport(reportData);
 };
+
+/** Exports an AI-drafted Markdown report as a simple paginated PDF (headings, bullets, tables as text). */
+export const generateMarkdownReport = (title: string, markdown: string, generatedBy: string) => {
+  const doc = new jsPDF();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const width = doc.internal.pageSize.getWidth() - 40;
+  let y = 30;
+
+  const write = (text: string, size: number, style: 'normal' | 'bold' = 'normal', indent = 0) => {
+    doc.setFont('helvetica', style);
+    doc.setFontSize(size);
+    for (const line of doc.splitTextToSize(text, width - indent)) {
+      if (y > pageHeight - 20) {
+        doc.addPage();
+        y = 20;
+      }
+      doc.text(line, 20 + indent, y);
+      y += size * 0.5;
+    }
+  };
+
+  write(title, 18, 'bold');
+  doc.setTextColor(100);
+  write(`Generated ${new Date().toLocaleString()} by ${generatedBy}. AI draft: review before sharing.`, 9);
+  doc.setTextColor(0);
+  y += 4;
+
+  const plain = (s: string) => s.replace(/\*\*(.*?)\*\*/g, '$1').replace(/`([^`]*)`/g, '$1').replace(/\[(.*?)\]\(.*?\)/g, '$1');
+  for (const raw of markdown.split('\n')) {
+    const line = raw.trimEnd();
+    if (!line.trim()) { y += 2; continue; }
+    if (/^\|?\s*:?-{3,}/.test(line)) continue; // table separator rows
+    const heading = /^(#{1,6})\s+(.*)/.exec(line);
+    if (heading) {
+      y += 2;
+      write(plain(heading[2]), heading[1].length <= 2 ? 14 : 12, 'bold');
+    } else if (/^\s*[-*]\s+/.test(line)) {
+      write(`• ${plain(line.replace(/^\s*[-*]\s+/, ''))}`, 10, 'normal', 4);
+    } else if (line.startsWith('|')) {
+      write(plain(line.split('|').map((c) => c.trim()).filter(Boolean).join('   ·   ')), 9);
+    } else {
+      write(plain(line), 10);
+    }
+  }
+  doc.save(`${title.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
+};

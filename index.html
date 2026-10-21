@@ -2,21 +2,30 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SilverSync - Healthcare Management System</title>
-    <meta name="description" content="Comprehensive internal management system for healthcare institution with resident management, EMR, CRM, and accounting" />
-    <meta name="author" content="SilverSync" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>SilverSync · Care home operations</title>
+    <meta name="description" content="The operations app of a residential care home: residents, medication, billing, staff and documents, with an assistant that answers from the home's records." />
+    <meta name="theme-color" content="#EDEFEA" />
+    <!-- Internal staff tool holding health records: keep it out of search engines -->
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href="/fonts/atkinson-next-200_800-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/atkinson-mono-200_800-normal.woff2" as="font" type="font/woff2" crossorigin />
 
-    <meta property="og:title" content="SilverSync - Healthcare Management System" />
-    <meta property="og:description" content="Secure web-based platform for centralized resident, medical, HR, and financial workflows" />
+    <meta property="og:title" content="SilverSync · Care home operations" />
+    <meta property="og:description" content="Residents, medication, billing, staff and documents for a residential care home, in one calm place." />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="" />
-
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="" />
+    <meta name="twitter:card" content="summary" />
+  </head>
 
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Shown until the app loads (and to anything that reads the HTML without running it). React replaces it. -->
+      <main style="min-height:100vh;display:grid;place-content:center;gap:10px;padding:24px;background:#EDEFEA;color:#131B18;font-family:'Atkinson Next',system-ui,sans-serif;text-align:center">
+        <h1 style="margin:0;font-size:1.75rem;font-weight:800;letter-spacing:-0.03em">SilverSync</h1>
+        <p style="margin:0;color:#4D5853">Care home operations: residents, medication, billing, staff and documents.</p>
+      </main>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

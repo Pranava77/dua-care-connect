@@ -1,11 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { mockApi } from "@/lib/mockData";
+import { useResidents } from "@/hooks/queries/residents";
+import { useCreatePrescription } from "@/hooks/queries/medical";
 import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
 import { Plus } from "lucide-react";
@@ -22,8 +23,9 @@ const prescriptionSchema = z.object({
 export function AddPrescriptionDialog({ onSuccess }: { onSuccess?: () => void }) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [residents, setResidents] = useState<any[]>([]);
+  const { data: residents = [] } = useResidents(open);
   const { toast } = useToast();
+  const createPrescription = useCreatePrescription();
   const { user } = useAuth();
   
   const [formData, setFormData] = useState<{
@@ -42,20 +44,7 @@ export function AddPrescriptionDialog({ onSuccess }: { onSuccess?: () => void })
     prescribing_doctor: "",
   });
 
-  useEffect(() => {
-    if (open) {
-      fetchResidents();
-    }
-  }, [open]);
 
-  const fetchResidents = async () => {
-    try {
-      const { data } = await mockApi.getResidents();
-      setResidents(data || []);
-    } catch (error) {
-      console.error("Error fetching residents:", error);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,7 +54,7 @@ export function AddPrescriptionDialog({ onSuccess }: { onSuccess?: () => void })
     try {
       const validated = prescriptionSchema.parse(formData);
 
-      const { error } = await mockApi.insertPrescription({
+      await createPrescription.mutateAsync({
         resident_id: validated.resident_id,
         medication: validated.medication,
         dosage: validated.dosage,
@@ -73,8 +62,6 @@ export function AddPrescriptionDialog({ onSuccess }: { onSuccess?: () => void })
         refill_date: validated.refill_date,
         prescribing_doctor: validated.prescribing_doctor,
       });
-
-      if (error) throw error;
 
       toast({
         title: "Success",
@@ -115,12 +102,12 @@ export function AddPrescriptionDialog({ onSuccess }: { onSuccess?: () => void })
       <DialogTrigger asChild>
         <Button>
           <Plus className="mr-2 h-4 w-4" />
-          Add Prescription
+          Add prescription
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="text-headline-2">Add Prescription</DialogTitle>
+          <DialogTitle className="text-headline-2">Add prescription</DialogTitle>
           <DialogDescription className="text-body">Enter the prescription information below</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -138,7 +125,7 @@ export function AddPrescriptionDialog({ onSuccess }: { onSuccess?: () => void })
                 <SelectContent>
                   {residents.map((resident) => (
                     <SelectItem key={resident.id} value={resident.id}>
-                      {resident.name} - Room {resident.room_number}
+                      {resident.name}, room {resident.room_number}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -221,7 +208,7 @@ export function AddPrescriptionDialog({ onSuccess }: { onSuccess?: () => void })
               Cancel
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Adding..." : "Add Prescription"}
+              {isLoading ? "Adding…" : "Add prescription"}
             </Button>
           </div>
         </form>

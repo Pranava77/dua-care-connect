@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, Pill, Plus, Edit, Trash2, MoreHorizontal } from "lucide-react";
+import { ClipboardList, Pill, Plus, Edit, Trash2, MoreHorizontal } from "lucide-react";
 import { AddMedicalRecordDialog } from "@/components/AddMedicalRecordDialog";
 import { AddPrescriptionDialog } from "@/components/AddPrescriptionDialog";
 import { EditMedicalRecordDialog } from "@/components/EditMedicalRecordDialog";
@@ -23,14 +24,33 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { mockApi } from "@/lib/mockData";
+import {
+  useDeleteMedicalRecord,
+  useDeletePrescription,
+  useMedicalRecords,
+  usePrescriptions,
+} from "@/hooks/queries/medical";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { DoorChip } from "@/components/door/DoorChip";
+
+/** Refill date with a lit call light when it falls within a week (or has passed). */
+function RefillDue({ date }: { date: string }) {
+  const days = Math.round((new Date(date).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) / 86_400_000);
+  const soon = days <= 7;
+  const label = days < 0 ? `overdue by ${-days} ${days === -1 ? "day" : "days"}` : days === 0 ? "due today" : `due in ${days} ${days === 1 ? "day" : "days"}`;
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      {soon && <span className="h-2 w-2 rounded-full bg-call shadow-[0_0_0_3px_hsl(var(--call)/0.25)]" aria-hidden="true" />}
+      <span className={soon ? "font-bold text-warning" : undefined}>
+        Refill {label} ({new Date(date).toLocaleDateString("en-GB")})
+      </span>
+    </span>
+  );
+}
 
 export default function Medical() {
-  const [medicalRecords, setMedicalRecords] = useState<any[]>([]);
-  const [prescriptions, setPrescriptions] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  useDocumentTitle("Medical records");
   const [deleteRecordDialogOpen, setDeleteRecordDialogOpen] = useState(false);
   const [deletePrescriptionDialogOpen, setDeletePrescriptionDialogOpen] = useState(false);
   const [recordToDelete, setRecordToDelete] = useState<any>(null);
@@ -39,40 +59,22 @@ export default function Medical() {
   const [editingPrescription, setEditingPrescription] = useState<any>(null);
   const { user } = useAuth();
 
-  useEffect(() => {
-    if (user) {
-      fetchData();
-    }
-  }, [user]);
-
-  const fetchData = async () => {
-    try {
-      const [recordsResult, prescriptionsResult] = await Promise.all([
-        mockApi.getMedicalRecords(),
-        mockApi.getPrescriptions()
-      ]);
-
-      if (recordsResult.error) throw recordsResult.error;
-      if (prescriptionsResult.error) throw prescriptionsResult.error;
-
-      setMedicalRecords(recordsResult.data || []);
-      setPrescriptions(prescriptionsResult.data || []);
-    } catch (error: any) {
-      toast.error("Failed to load medical data: " + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const records = useMedicalRecords();
+  const prescriptionsQuery = usePrescriptions();
+  const medicalRecords = records.data ?? [];
+  const prescriptions = prescriptionsQuery.data ?? [];
+  const loading = records.isLoading || prescriptionsQuery.isLoading;
+  const fetchData = () => Promise.all([records.refetch(), prescriptionsQuery.refetch()]);
+  const deleteRecord = useDeleteMedicalRecord();
+  const deletePrescription = useDeletePrescription();
 
   const handleDeleteRecord = async () => {
     if (!recordToDelete) return;
     
     try {
-      const { error } = await mockApi.deleteMedicalRecord(recordToDelete.id);
-      if (error) throw error;
-      
+      await deleteRecord.mutateAsync(recordToDelete.id);
+
       toast.success("Medical record deleted successfully");
-      fetchData();
     } catch (error: any) {
       toast.error("Failed to delete medical record: " + error.message);
     } finally {
@@ -85,11 +87,9 @@ export default function Medical() {
     if (!prescriptionToDelete) return;
     
     try {
-      const { error } = await mockApi.deletePrescription(prescriptionToDelete.id);
-      if (error) throw error;
-      
+      await deletePrescription.mutateAsync(prescriptionToDelete.id);
+
       toast.success("Prescription deleted successfully");
-      fetchData();
     } catch (error: any) {
       toast.error("Failed to delete prescription: " + error.message);
     } finally {
@@ -110,10 +110,10 @@ export default function Medical() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="page-head">
         <div>
-          <h2 className="text-headline-1 font-bold text-foreground">Medical Records</h2>
-          <p className="text-body text-muted-foreground">Monitor health conditions and prescriptions</p>
+          <h1 className="text-headline-1">Medical records</h1>
+          <p className="mt-3 text-muted-foreground">Diagnoses, treatments and the medicines each resident takes, with their next refill date.</p>
         </div>
         <div className="flex gap-2">
           <AddPrescriptionDialog onSuccess={fetchData} />
@@ -125,8 +125,8 @@ export default function Medical() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-destructive" />
-              Medical Alerts
+              <ClipboardList className="h-5 w-5" aria-hidden="true" />
+              Latest records
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -140,7 +140,7 @@ export default function Medical() {
                   <div key={record.id} className="border border-border rounded-lg p-4">
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
-                        <p className="font-semibold text-foreground">{record.residents?.name}</p>
+                        <DoorChip residentId={record.resident_id} name={record.residents?.name} link />
                         <p className="text-sm text-muted-foreground">{record.diagnosis}</p>
                       </div>
                       <div className="flex items-center gap-2">
@@ -149,7 +149,7 @@ export default function Medical() {
                         </Badge>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="hover:bg-primary/10">
+                            <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="More actions">
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
@@ -185,8 +185,8 @@ export default function Medical() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Pill className="h-5 w-5 text-secondary" />
-              Prescription Refills
+              <Pill className="h-5 w-5" aria-hidden="true" />
+              Prescriptions and refills
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -200,8 +200,8 @@ export default function Medical() {
                   <div key={prescription.id} className="border border-border rounded-lg p-4">
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
-                        <p className="font-semibold text-foreground">{prescription.residents?.name}</p>
-                        <p className="text-sm text-muted-foreground">{prescription.medication} - {prescription.dosage}</p>
+                        <DoorChip residentId={prescription.resident_id} name={prescription.residents?.name} link />
+                        <p className="text-sm text-muted-foreground">{prescription.medication}, {prescription.dosage}</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge variant="outline" className="bg-warning/10 text-warning">
@@ -209,7 +209,7 @@ export default function Medical() {
                         </Badge>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="hover:bg-primary/10">
+                            <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="More actions">
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
@@ -230,7 +230,7 @@ export default function Medical() {
                       </div>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Refill date: {new Date(prescription.refill_date).toLocaleDateString()}
+                      <RefillDue date={prescription.refill_date} />
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
                       Doctor: {prescription.prescribing_doctor}
@@ -271,7 +271,7 @@ export default function Medical() {
       <AlertDialog open={deleteRecordDialogOpen} onOpenChange={setDeleteRecordDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Medical Record</AlertDialogTitle>
+            <AlertDialogTitle>Delete medical record</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete this medical record? This action cannot be undone.
             </AlertDialogDescription>
@@ -291,7 +291,7 @@ export default function Medical() {
       <AlertDialog open={deletePrescriptionDialogOpen} onOpenChange={setDeletePrescriptionDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Prescription</AlertDialogTitle>
+            <AlertDialogTitle>Delete prescription</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete this prescription? This action cannot be undone.
             </AlertDialogDescription>

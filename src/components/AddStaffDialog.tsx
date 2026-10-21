@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { mockApi } from "@/lib/mockData";
+import { useCreateStaff } from "@/hooks/queries/staff";
 import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
 import { Plus } from "lucide-react";
@@ -23,6 +23,7 @@ export function AddStaffDialog({ onSuccess }: { onSuccess?: () => void }) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const createStaff = useCreateStaff();
   const { user } = useAuth();
   
   const [formData, setFormData] = useState<{
@@ -49,7 +50,7 @@ export function AddStaffDialog({ onSuccess }: { onSuccess?: () => void }) {
     try {
       const validated = staffSchema.parse(formData);
 
-      const { error } = await mockApi.insertStaff({
+      await createStaff.mutateAsync({
         name: validated.name,
         position: validated.position,
         department: validated.department,
@@ -57,8 +58,6 @@ export function AddStaffDialog({ onSuccess }: { onSuccess?: () => void }) {
         phone: validated.phone,
         hire_date: validated.hire_date,
       });
-
-      if (error) throw error;
 
       toast({
         title: "Success",
@@ -99,12 +98,12 @@ export function AddStaffDialog({ onSuccess }: { onSuccess?: () => void }) {
       <DialogTrigger asChild>
         <Button>
           <Plus className="mr-2 h-4 w-4" />
-          Add Staff Member
+          Add staff member
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Add Staff Member</DialogTitle>
+          <DialogTitle>Add staff member</DialogTitle>
           <DialogDescription>Enter the staff member's information below</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -187,7 +186,7 @@ export function AddStaffDialog({ onSuccess }: { onSuccess?: () => void }) {
               Cancel
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Adding..." : "Add Staff Member"}
+              {isLoading ? "Adding…" : "Add staff member"}
             </Button>
           </div>
         </form>

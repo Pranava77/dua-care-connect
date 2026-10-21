@@ -1,0 +1,34 @@
+[project]
+name = "silversync-backend"
+version = "0.1.0"
+description = "FastAPI backend with agentic RAG for SilverSync"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.30",
+  "pydantic>=2.7",
+  "pydantic-settings>=2.3",
+  "email-validator>=2.1",
+  "sqlalchemy>=2.0",
+  "chromadb>=1.0",
+  "google-genai>=1.40",
+  "pyjwt>=2.8",
+  "bcrypt>=4.1",
+  "python-multipart>=0.0.9",
+  "pypdf>=4.2",
+  "cryptography>=42",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.2",
+  "httpx>=0.27",
+  "import-linter>=2.1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.uv]
+package = false

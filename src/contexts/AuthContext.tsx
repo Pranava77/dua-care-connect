@@ -1,93 +1,84 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { mockApi } from '@/lib/mockData';
-import { User, UserRole, ROLE_PERMISSIONS } from '@/lib/rbac';
-
-interface MockSession {
-  access_token: string;
-  user: User;
-}
+import { useQueryClient } from '@tanstack/react-query';
+import { authApi } from '@/lib/api/auth';
+import { AUTH_EXPIRED_EVENT, sessionStore, type Session } from '@/lib/api/client';
+import { User } from '@/lib/rbac';
 
 interface AuthContextType {
   user: User | null;
-  session: MockSession | null;
-  signOut: () => Promise<void>;
+  session: Session | null;
   loading: boolean;
-  updateUserRole: (role: UserRole) => void;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, name?: string) => Promise<void>;
+  signOut: () => Promise<void>;
   refreshSession: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<MockSession | null>(null);
+  const [session, setSession] = useState<Session | null>(() => sessionStore.get());
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const clear = useCallback(() => {
+    sessionStore.clear();
+    setSession(null);
+    queryClient.clear();
+  }, [queryClient]);
+
+  const store = (next: Session) => {
+    sessionStore.set(next);
+    setSession(next);
+  };
+
+  const refreshSession = useCallback(async () => {
+    const current = sessionStore.get();
+    if (!current) {
+      setSession(null);
+      return;
+    }
+    try {
+      // Permissions come from the server, never from what the browser has cached.
+      const user = await authApi.me();
+      store({ ...current, user });
+    } catch {
+      clear();
+    }
+  }, [clear]);
 
   useEffect(() => {
-    // Check for existing session in localStorage synchronously first
-    const storedSession = localStorage.getItem('mock-session');
-    if (storedSession) {
-      try {
-        const parsed = JSON.parse(storedSession);
-        setSession(parsed);
-        setUser(parsed.user);
-      } catch (error) {
-        console.error('Error parsing session:', error);
-        localStorage.removeItem('mock-session');
-      }
-    }
-    setLoading(false);
-  }, []);
+    refreshSession().finally(() => setLoading(false));
+  }, [refreshSession]);
+
+  useEffect(() => {
+    const onExpired = () => {
+      clear();
+      navigate('/login');
+    };
+    window.addEventListener(AUTH_EXPIRED_EVENT, onExpired);
+    return () => window.removeEventListener(AUTH_EXPIRED_EVENT, onExpired);
+  }, [clear, navigate]);
+
+  const signIn = async (email: string, password: string) => {
+    const { session: next } = await authApi.signIn(email, password);
+    store(next);
+  };
+
+  const signUp = async (email: string, password: string, name?: string) => {
+    const { session: next } = await authApi.signUp(email, password, name);
+    store(next);
+  };
 
   const signOut = async () => {
-    await mockApi.signOut();
-    setSession(null);
-    setUser(null);
+    clear();
     navigate('/login');
   };
 
-  const updateUserRole = (role: UserRole) => {
-    if (user) {
-      const updatedUser = {
-        ...user,
-        role,
-        permissions: ROLE_PERMISSIONS[role]
-      };
-      setUser(updatedUser);
-      
-      // Update session in localStorage
-      if (session) {
-        const updatedSession = {
-          ...session,
-          user: updatedUser
-        };
-        localStorage.setItem('mock-session', JSON.stringify(updatedSession));
-        setSession(updatedSession);
-      }
-    }
-  };
-
-  const refreshSession = async () => {
-    try {
-      const { data } = await mockApi.getSession();
-      if (data.session) {
-        setSession(data.session);
-        setUser(data.session.user);
-      } else {
-        setSession(null);
-        setUser(null);
-      }
-    } catch (error) {
-      console.error('Error refreshing session:', error);
-      setSession(null);
-      setUser(null);
-    }
-  };
-
   return (
-    <AuthContext.Provider value={{ user, session, signOut, loading, updateUserRole, refreshSession }}>
+    <AuthContext.Provider value={{ user: session?.user ?? null, session, loading, signIn, signUp, signOut, refreshSession }}>
       {children}
     </AuthContext.Provider>
   );

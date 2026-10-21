@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Calendar, DollarSign, FileText, User, CreditCard } from "lucide-react";
+import { Calendar, PoundSterling, FileText, User, CreditCard } from "lucide-react";
 
 interface InvoiceDetailsDialogProps {
   invoice: any;
@@ -37,7 +37,7 @@ export function InvoiceDetailsDialog({ invoice, open, onOpenChange }: InvoiceDet
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-headline-2">Invoice Details</DialogTitle>
+          <DialogTitle className="text-headline-2">Invoice details</DialogTitle>
           <DialogDescription className="text-body">
             Complete information for invoice {invoice.invoice_number}
           </DialogDescription>
@@ -63,7 +63,7 @@ export function InvoiceDetailsDialog({ invoice, open, onOpenChange }: InvoiceDet
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Invoice Number</p>
+                  <p className="text-sm font-medium text-muted-foreground">Invoice number</p>
                   <p className="text-lg font-semibold">{invoice.invoice_number}</p>
                 </div>
                 <div>
@@ -71,21 +71,21 @@ export function InvoiceDetailsDialog({ invoice, open, onOpenChange }: InvoiceDet
                   <p className="text-lg font-semibold text-primary">{formatCurrency(invoice.amount)}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Due Date</p>
+                  <p className="text-sm font-medium text-muted-foreground">Due date</p>
                   <p className="text-lg font-semibold flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
                     {new Date(invoice.due_date).toLocaleDateString()}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Created Date</p>
+                  <p className="text-sm font-medium text-muted-foreground">Created date</p>
                   <p className="text-lg font-semibold">
                     {new Date(invoice.created_at).toLocaleDateString()}
                   </p>
                 </div>
                 {invoice.paid_at && (
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Paid Date</p>
+                    <p className="text-sm font-medium text-muted-foreground">Paid date</p>
                     <p className="text-lg font-semibold">
                       {new Date(invoice.paid_at).toLocaleDateString()}
                     </p>
@@ -93,7 +93,7 @@ export function InvoiceDetailsDialog({ invoice, open, onOpenChange }: InvoiceDet
                 )}
                 {invoice.payment_method && (
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Payment Method</p>
+                    <p className="text-sm font-medium text-muted-foreground">Payment method</p>
                     <p className="text-lg font-semibold flex items-center gap-1">
                       <CreditCard className="h-4 w-4" />
                       {invoice.payment_method}
@@ -115,7 +115,7 @@ export function InvoiceDetailsDialog({ invoice, open, onOpenChange }: InvoiceDet
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Resident Name</p>
+                  <p className="text-sm font-medium text-muted-foreground">Resident name</p>
                   <p className="text-lg font-semibold">{invoice.resident_name}</p>
                 </div>
                 <div>
@@ -130,7 +130,7 @@ export function InvoiceDetailsDialog({ invoice, open, onOpenChange }: InvoiceDet
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <DollarSign className="h-5 w-5" />
+                <PoundSterling className="h-5 w-5" />
                 Services Breakdown
               </CardTitle>
             </CardHeader>
@@ -153,7 +153,7 @@ export function InvoiceDetailsDialog({ invoice, open, onOpenChange }: InvoiceDet
                 <Separator />
                 
                 <div className="flex items-center justify-between text-lg font-semibold">
-                  <span>Total Amount</span>
+                  <span>Total amount</span>
                   <span className="text-primary">{formatCurrency(invoice.amount)}</span>
                 </div>
               </div>
@@ -184,11 +184,11 @@ export function InvoiceDetailsDialog({ invoice, open, onOpenChange }: InvoiceDet
               <CardContent>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Payment Method</p>
+                    <p className="text-sm font-medium text-muted-foreground">Payment method</p>
                     <p className="text-lg font-semibold">{invoice.payment_method}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Payment Date</p>
+                    <p className="text-sm font-medium text-muted-foreground">Payment date</p>
                     <p className="text-lg font-semibold">
                       {new Date(invoice.paid_at).toLocaleDateString()}
                     </p>

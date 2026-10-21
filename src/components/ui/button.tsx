@@ -5,21 +5,23 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 btn-ripple",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-bold transition-[color,transform] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:opacity-90 hover:scale-105 rounded-full hover-glow",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:scale-105 rounded-full",
-        outline: "border border-border bg-background hover:bg-muted hover:text-muted-foreground rounded-full hover:scale-105",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:scale-105 rounded-full",
-        ghost: "hover:bg-muted hover:text-muted-foreground rounded-full hover:scale-105",
-        link: "text-primary underline-offset-4 hover:underline",
-        pill: "bg-primary text-primary-foreground hover:opacity-90 rounded-full px-6 py-2 hover:scale-105 hover-glow",
+        // Primary: ink door; a call-light amber panel swings in from the hinge side
+        default: "btn-swing bg-primary text-primary-foreground",
+        destructive: "btn-swing bg-destructive text-destructive-foreground",
+        // Secondary: a line that floods with ink from the hinge side
+        outline: "btn-line border border-foreground/25 bg-card text-foreground",
+        secondary: "btn-line bg-secondary text-secondary-foreground",
+        ghost: "btn-plate text-foreground",
+        link: "text-link text-foreground px-0",
+        pill: "btn-swing bg-primary text-primary-foreground px-6",
       },
       size: {
-        default: "h-10 px-6 py-2",
-        sm: "h-9 px-4 py-2",
+        default: "h-10 px-5 py-2",
+        sm: "h-9 px-3.5 py-2",
         lg: "h-11 px-8 py-2",
         icon: "h-10 w-10",
       },

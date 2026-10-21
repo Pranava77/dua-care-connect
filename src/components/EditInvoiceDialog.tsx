@@ -6,9 +6,11 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { mockApi } from "@/lib/mockData";
+import { useResidents } from "@/hooks/queries/residents";
+import { useUpdateInvoice } from "@/hooks/queries/accounting";
 import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
+import type { Invoice } from "@/lib/types";
 import { Plus, X } from "lucide-react";
 
 const invoiceSchema = z.object({
@@ -32,8 +34,9 @@ interface EditInvoiceDialogProps {
 
 export function EditInvoiceDialog({ invoice, open, onOpenChange, onSuccess }: EditInvoiceDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [residents, setResidents] = useState<any[]>([]);
+  const { data: residents = [] } = useResidents(open);
   const { toast } = useToast();
+  const updateInvoice = useUpdateInvoice();
   const { user } = useAuth();
   
   const [formData, setFormData] = useState<{
@@ -67,18 +70,9 @@ export function EditInvoiceDialog({ invoice, open, onOpenChange, onSuccess }: Ed
         })) || [{ name: "", amount: "", description: "" }],
         notes: invoice.notes || "",
       });
-      fetchResidents();
     }
   }, [invoice, open]);
 
-  const fetchResidents = async () => {
-    try {
-      const { data } = await mockApi.getResidents();
-      setResidents(data || []);
-    } catch (error) {
-      console.error("Error fetching residents:", error);
-    }
-  };
 
   const addService = () => {
     setFormData({
@@ -127,15 +121,13 @@ export function EditInvoiceDialog({ invoice, open, onOpenChange, onSuccess }: Ed
         notes: formData.notes || undefined,
       });
 
-      const { error } = await mockApi.updateInvoice(invoice.id, {
+      await updateInvoice.mutateAsync({ id: invoice.id, data: {
         resident_id: validated.resident_id,
         amount: validated.amount,
         due_date: validated.due_date,
-        services: validated.services,
+        services: validated.services as Invoice["services"],
         notes: validated.notes,
-      });
-
-      if (error) throw error;
+      } });
 
       toast({
         title: "Success",
@@ -167,7 +159,7 @@ export function EditInvoiceDialog({ invoice, open, onOpenChange, onSuccess }: Ed
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Edit Invoice</DialogTitle>
+          <DialogTitle>Edit invoice</DialogTitle>
           <DialogDescription>Update the invoice information below</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -185,7 +177,7 @@ export function EditInvoiceDialog({ invoice, open, onOpenChange, onSuccess }: Ed
                 <SelectContent>
                   {residents.map((resident) => (
                     <SelectItem key={resident.id} value={resident.id}>
-                      {resident.name} - Room {resident.room_number}
+                      {resident.name}, room {resident.room_number}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -216,7 +208,7 @@ export function EditInvoiceDialog({ invoice, open, onOpenChange, onSuccess }: Ed
             {formData.services.map((service, index) => (
               <div key={index} className="grid grid-cols-12 gap-2 items-end">
                 <div className="col-span-4">
-                  <Label htmlFor={`service-name-${index}`}>Service Name</Label>
+                  <Label htmlFor={`service-name-${index}`}>Service name</Label>
                   <Input
                     id={`service-name-${index}`}
                     value={service.name}

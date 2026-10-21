@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,14 +12,21 @@ import {
   Home, 
   Heart, 
   FileText, 
-  DollarSign,
+  PoundSterling,
   Users,
   Activity,
   MapPin,
   Shield,
-  Pill
+  Pill,
+  Sparkles
 } from "lucide-react";
-import { mockApi } from "@/lib/mockData";
+import { useResidentProfile } from "@/hooks/queries/residentProfile";
+import { useAlerts } from "@/hooks/queries/ai";
+import { Door } from "@/components/door/Door";
+import { floorOf } from "@/lib/doors";
+import { residentDoorTransitionName } from "@/hooks/useDoorNavigate";
+import { useAssistant } from "@/features/assistant/AssistantProvider";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { toast } from "sonner";
 import { EditResidentDialog } from "@/components/EditResidentDialog";
 import { PermissionGate } from "@/components/PermissionGate";
@@ -27,49 +34,21 @@ import { PermissionGate } from "@/components/PermissionGate";
 export default function ResidentDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [resident, setResident] = useState<any>(null);
-  const [medicalRecords, setMedicalRecords] = useState<any[]>([]);
-  const [prescriptions, setPrescriptions] = useState<any[]>([]);
-  const [invoices, setInvoices] = useState<any[]>([]);
-  const [documents, setDocuments] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const profile = useResidentProfile(id);
+  const { resident, medicalRecords, prescriptions, invoices, documents, isLoading: loading, notFound } = profile;
+  const fetchResidentData = profile.refetch;
+  const { data: alerts = [] } = useAlerts();
+  const residentAlerts = alerts.filter((a) => a.resident_id === id);
+  const { ask } = useAssistant();
+  useDocumentTitle(resident ? `${resident.name}, room ${resident.room_number}` : "Resident");
   const [editingResident, setEditingResident] = useState<any>(null);
 
   useEffect(() => {
-    if (id) {
-      fetchResidentData();
+    if (notFound) {
+      toast.error("Resident not found");
+      navigate("/residents");
     }
-  }, [id]);
-
-  const fetchResidentData = async () => {
-    try {
-      const [residentRes, medicalRes, prescriptionRes, invoiceRes, documentRes] = await Promise.all([
-        mockApi.getResidents(),
-        mockApi.getMedicalRecords(),
-        mockApi.getPrescriptions(),
-        mockApi.getInvoices(),
-        mockApi.getDocuments(),
-      ]);
-
-      const foundResident = residentRes.data?.find((r: any) => r.id === id);
-      if (foundResident) {
-        setResident(foundResident);
-        
-        // Get related data
-        setMedicalRecords(medicalRes.data?.filter((m: any) => m.resident_id === id) || []);
-        setPrescriptions(prescriptionRes.data?.filter((p: any) => p.resident_id === id) || []);
-        setInvoices(invoiceRes.data?.filter((i: any) => i.resident_id === id) || []);
-        setDocuments(documentRes.data?.filter((d: any) => d.resident_id === id) || []);
-      } else {
-        toast.error("Resident not found");
-        navigate("/residents");
-      }
-    } catch (error: any) {
-      toast.error("Failed to load resident data: " + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [notFound, navigate]);
 
   const calculateAge = (dateOfBirth: string) => {
     const today = new Date();
@@ -95,104 +74,81 @@ export default function ResidentDetails() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <p className="text-muted-foreground mb-4">Resident not found</p>
-          <Button onClick={() => navigate("/residents")}>Go Back</Button>
+          <Button onClick={() => navigate("/residents")}>Go back</Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" onClick={() => navigate("/residents")}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Residents
-          </Button>
+    <div className="space-y-12">
+      <Link to="/residents" className="arrow-host arrow-back -my-2 inline-flex items-center gap-2 py-2 text-sm font-bold text-muted-foreground hover:text-foreground">
+        <ArrowLeft className="arrow h-4 w-4" aria-hidden="true" />
+        All residents
+      </Link>
+
+      {/* The resident's door: the same door that was clicked in the corridor (shared view transition) */}
+      <header className="grid gap-8 md:grid-cols-[auto_1fr] md:items-end">
+        <Door
+          room={resident.room_number}
+          name={resident.name}
+          size="xl"
+          call={residentAlerts.length > 0}
+          style={{ viewTransitionName: residentDoorTransitionName }}
+        />
+        <div className="space-y-6">
           <div>
-            <h1 className="text-headline-1 font-bold text-gradient-primary">{resident.name}</h1>
-            <p className="text-body text-muted-foreground">Complete resident profile and history</p>
+            <p className="font-mono text-sm text-muted-foreground tabular">
+              Room {resident.room_number} · Floor {floorOf(resident.room_number)}
+            </p>
+            <h1 className="text-display mt-2">{resident.name}</h1>
+          </div>
+          <dl className="grid grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-3">
+            <div>
+              <dt className="text-sm text-muted-foreground">Age</dt>
+              <dd className="font-bold">{calculateAge(resident.date_of_birth)} years</dd>
+            </div>
+            <div>
+              <dt className="text-sm text-muted-foreground">Born</dt>
+              <dd className="font-mono font-bold tabular">{new Date(resident.date_of_birth).toLocaleDateString("en-GB")}</dd>
+            </div>
+            <div className="col-span-2 sm:col-span-1">
+              <dt className="text-sm text-muted-foreground">Emergency contact</dt>
+              <dd className="font-bold">{resident.emergency_contact}</dd>
+            </div>
+          </dl>
+          {resident.medical_conditions.length > 0 && (
+            <ul className="flex flex-wrap gap-2" aria-label="Medical conditions" role="list">
+              {resident.medical_conditions.map((condition: string) => (
+                <li key={condition} className="rounded-md border border-foreground/20 bg-card px-2.5 py-1 text-sm font-bold">{condition}</li>
+              ))}
+            </ul>
+          )}
+          <div className="flex flex-wrap gap-3">
+            <Button variant="outline" onClick={() => ask(`Give me a handover summary for ${resident.name} in room ${resident.room_number}.`, `resident id ${resident.id}`)}>
+              <Sparkles className="h-4 w-4" />
+              Handover summary
+            </Button>
+            <PermissionGate permission="residents:update">
+              <Button variant="ghost" onClick={() => setEditingResident(resident)}>
+                <Edit className="h-4 w-4" />
+                Edit details
+              </Button>
+            </PermissionGate>
           </div>
         </div>
-        <PermissionGate permission="residents:update">
-          <Button onClick={() => setEditingResident(resident)}>
-            <Edit className="h-4 w-4 mr-2" />
-            Edit Profile
-          </Button>
-        </PermissionGate>
-      </div>
+      </header>
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Left Column - Main Info */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Personal Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-primary" />
-                Personal Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Full Name</p>
-                  <p className="font-semibold">{resident.name}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Age</p>
-                  <p className="font-semibold">{calculateAge(resident.date_of_birth)} years old</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <Home className="h-4 w-4" /> Room Number
-                  </p>
-                  <p className="font-semibold">{resident.room_number}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <Calendar className="h-4 w-4" /> Date of Birth
-                  </p>
-                  <p className="font-semibold">{new Date(resident.date_of_birth).toLocaleDateString()}</p>
-                </div>
-              </div>
-              
-              <Separator />
-              
-              <div>
-                <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <Phone className="h-4 w-4" /> Emergency Contact
-                </p>
-                <p className="font-semibold">{resident.emergency_contact}</p>
-              </div>
-
-              {resident.medical_conditions && resident.medical_conditions.length > 0 && (
-                <>
-                  <Separator />
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground flex items-center gap-2 mb-2">
-                      <Heart className="h-4 w-4" /> Medical Conditions
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {resident.medical_conditions.map((condition: string, index: number) => (
-                        <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                          <Heart className="h-3 w-3" /> {condition}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
-
+          <PermissionGate permission="medical:read">
           {/* Medical Records Timeline */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Activity className="h-5 w-5 text-primary" />
-                Medical Records Timeline
+                Medical records
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -211,7 +167,7 @@ export default function ResidentDetails() {
                             {record.doctor} • {new Date(record.last_check_date).toLocaleDateString()}
                           </p>
                         </div>
-                        <Badge variant="outline">{record.category || 'Routine'}</Badge>
+                        <Badge variant="outline">{record.doctor}</Badge>
                       </div>
                       <p className="text-sm text-muted-foreground mt-2">{record.treatment}</p>
                       {record.notes && (
@@ -229,7 +185,7 @@ export default function ResidentDetails() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Pill className="h-5 w-5 text-primary" />
-                Current Prescriptions
+                Prescriptions
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -268,47 +224,16 @@ export default function ResidentDetails() {
               )}
             </CardContent>
           </Card>
+          </PermissionGate>
         </div>
 
-        {/* Right Column - Quick Stats & Actions */}
+        {/* Right Column: billing and documents */}
         <div className="space-y-6">
-          {/* Quick Stats */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Quick Overview</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground flex items-center gap-2">
-                  <Activity className="h-4 w-4" /> Medical Records
-                </span>
-                <Badge variant="secondary">{medicalRecords.length}</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground flex items-center gap-2">
-                  <Pill className="h-4 w-4" /> Prescriptions
-                </span>
-                <Badge variant="secondary">{prescriptions.length}</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground flex items-center gap-2">
-                  <DollarSign className="h-4 w-4" /> Invoices
-                </span>
-                <Badge variant="secondary">{invoices.length}</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground flex items-center gap-2">
-                  <FileText className="h-4 w-4" /> Documents
-                </span>
-                <Badge variant="secondary">{documents.length}</Badge>
-              </div>
-            </CardContent>
-          </Card>
-
+          <PermissionGate permission="accounting:read">
           {/* Recent Invoices */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Recent Invoices</CardTitle>
+              <CardTitle className="text-base">Recent invoices</CardTitle>
             </CardHeader>
             <CardContent>
               {invoices.length === 0 ? (
@@ -335,7 +260,8 @@ export default function ResidentDetails() {
               )}
             </CardContent>
           </Card>
-
+          </PermissionGate>
+          <PermissionGate permission="documents:read">
           {/* Documents */}
           <Card>
             <CardHeader>
@@ -359,6 +285,7 @@ export default function ResidentDetails() {
               )}
             </CardContent>
           </Card>
+          </PermissionGate>
         </div>
       </div>
 

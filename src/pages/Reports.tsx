@@ -1,36 +1,29 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Download, TrendingUp, Users, DollarSign, FileText, Calendar, Clock } from "lucide-react";
-import { mockApi } from "@/lib/mockData";
+import { Download, TrendingUp, Users, PoundSterling, FileText, Calendar, Clock } from "lucide-react";
+import { useGenerateReport, useReports } from "@/hooks/queries/reports";
+import { keys } from "@/hooks/queries/keys";
+import { residentsApi } from "@/lib/api/residents";
+import { accountingApi } from "@/lib/api/accounting";
+import { medicalApi } from "@/lib/api/medical";
+import { reportsApi } from "@/lib/api/reports";
+import { AiReportDrafts } from "@/features/ai-reports/AiReportDrafts";
+import { PermissionGate } from "@/components/PermissionGate";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { generateResidentReport, generateFinancialReport, generateMedicalReport } from "@/lib/pdfGenerator";
 
 export default function Reports() {
-  const [reports, setReports] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  useDocumentTitle("Reports");
   const [generatingReport, setGeneratingReport] = useState<string | null>(null);
   const { user } = useAuth();
 
-  useEffect(() => {
-    if (user) {
-      fetchReports();
-    }
-  }, [user]);
-
-  const fetchReports = async () => {
-    try {
-      const { data, error } = await mockApi.getReports();
-      if (error) throw error;
-      setReports(data || []);
-    } catch (error: any) {
-      toast.error("Failed to load reports: " + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: reports = [], isLoading: loading } = useReports();
+  const generateReport = useGenerateReport();
+  const queryClient = useQueryClient();
 
   const handleGenerateReport = async (reportId: string) => {
     setGeneratingReport(reportId);
@@ -41,28 +34,26 @@ export default function Reports() {
       // Generate actual PDF based on report type
       switch (report.type) {
         case 'residents':
-          const { data: residentsData } = await mockApi.getResidents();
-          await generateResidentReport(residentsData || [], user?.name || 'System');
+          const residentsData = await queryClient.fetchQuery({ queryKey: keys.residents, queryFn: () => residentsApi.list() });
+          await (await import("@/lib/pdfGenerator")).generateResidentReport(residentsData || [], user?.name || 'System');
           break;
         case 'financial':
-          const { data: invoicesData } = await mockApi.getInvoices();
-          await generateFinancialReport(invoicesData || [], user?.name || 'System');
+          const invoicesData = await queryClient.fetchQuery({ queryKey: keys.invoices, queryFn: () => accountingApi.listInvoices() });
+          await (await import("@/lib/pdfGenerator")).generateFinancialReport(invoicesData || [], user?.name || 'System');
           break;
         case 'medical':
-          const { data: medicalData } = await mockApi.getMedicalRecords();
-          const { data: prescriptionsData } = await mockApi.getPrescriptions();
-          await generateMedicalReport(medicalData || [], prescriptionsData || [], user?.name || 'System');
+          const medicalData = await queryClient.fetchQuery({ queryKey: keys.medicalRecords, queryFn: () => medicalApi.listRecords() });
+          const prescriptionsData = await queryClient.fetchQuery({ queryKey: keys.prescriptions, queryFn: () => medicalApi.listPrescriptions() });
+          await (await import("@/lib/pdfGenerator")).generateMedicalReport(medicalData || [], prescriptionsData || [], user?.name || 'System');
           break;
         default:
           // Generic report generation
-          const { data, error } = await mockApi.generateReport(reportId);
-          if (error) throw error;
-          toast.success("Report generated successfully");
           break;
       }
+      // Records the generation server-side (updates last_generated)
+      await generateReport.mutateAsync(reportId);
 
       toast.success(`${report.name} generated and downloaded successfully`);
-      fetchReports(); // Refresh the list to show updated last_generated time
     } catch (error: any) {
       toast.error("Failed to generate report: " + error.message);
     } finally {
@@ -72,10 +63,8 @@ export default function Reports() {
 
   const handleExportAll = async () => {
     try {
-      const { data, error } = await mockApi.exportData('reports');
-      if (error) throw error;
-      toast.success("Export started. Download will begin shortly.");
-      console.log("Export URL:", data.download_url);
+      await reportsApi.exportCsv('reports');
+      toast.success("Reports exported");
     } catch (error: any) {
       toast.error("Failed to export reports: " + error.message);
     }
@@ -83,46 +72,46 @@ export default function Reports() {
 
   const reportCategories = [
     {
-      title: "Operational Reports",
+      title: "Operational reports",
       icon: Users,
-      color: "text-primary",
+      color: "text-foreground",
       reports: reports.filter(r => r.category === 'Operational'),
     },
     {
-      title: "Financial Reports",
-      icon: DollarSign,
-      color: "text-success",
+      title: "Financial reports",
+      icon: PoundSterling,
+      color: "text-foreground",
       reports: reports.filter(r => r.category === 'Financial'),
     },
     {
-      title: "Clinical Reports",
+      title: "Clinical reports",
       icon: FileText,
-      color: "text-secondary",
+      color: "text-foreground",
       reports: reports.filter(r => r.category === 'Clinical'),
     },
     {
       title: "HR Reports",
       icon: Calendar,
-      color: "text-accent",
+      color: "text-foreground",
       reports: reports.filter(r => r.category === 'HR'),
     },
   ];
 
   const quickStats = [
     { 
-      label: "Total Reports", 
+      label: "Total reports", 
       value: reports.length.toString(), 
-      trend: "+12 this month",
+      trend: `Across ${new Set(reports.map((r) => r.category)).size} categories`,
       icon: FileText
     },
     { 
-      label: "Active Reports", 
+      label: "Active reports", 
       value: reports.filter(r => r.status === 'Active').length.toString(), 
       trend: "Schedule active",
       icon: TrendingUp
     },
     { 
-      label: "Generated Today", 
+      label: "Generated today", 
       value: reports.filter(r => {
         const today = new Date().toDateString();
         return new Date(r.last_generated).toDateString() === today;
@@ -136,18 +125,18 @@ export default function Reports() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="page-head">
         <div>
-          <h2 className="text-headline-1 font-bold text-foreground">Reports & Analytics</h2>
-          <p className="text-body text-muted-foreground">Generate and view comprehensive reports</p>
+          <h1 className="text-headline-1">Reports</h1>
+          <p className="mt-3 text-muted-foreground">Download standard reports as PDF, or have the assistant draft one from today’s records.</p>
         </div>
         <Button className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={handleExportAll}>
           <Download className="h-4 w-4 mr-2" />
-          Export All
+          Export all
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
         {quickStats.map((stat) => (
           <Card key={stat.label}>
             <CardHeader className="pb-2">
@@ -163,6 +152,10 @@ export default function Reports() {
           </Card>
         ))}
       </div>
+
+      <PermissionGate permission="reports:generate">
+        <AiReportDrafts />
+      </PermissionGate>
 
       <div className="grid gap-4 md:grid-cols-2">
         {reportCategories.map((category) => (
@@ -211,6 +204,7 @@ export default function Reports() {
                           size="sm"
                           onClick={() => handleGenerateReport(report.id)}
                           disabled={generatingReport === report.id}
+                          aria-label={`Download ${report.name} as PDF`}
                         >
                           {generatingReport === report.id ? (
                             <Clock className="h-4 w-4 animate-spin" />
@@ -231,7 +225,7 @@ export default function Reports() {
       {scheduledReports.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Scheduled Reports</CardTitle>
+            <CardTitle>Scheduled reports</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
