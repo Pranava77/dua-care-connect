@@ -2,101 +2,82 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* SilverSync design system: the corridors of a dementia-friendly care home.
+   Neutral signage walls; colour belongs to the residents' doors. See DESIGN.md.
+   Colour tokens are HSL triplets (shadcn convention). */
+
+@font-face {
+  font-family: 'Atkinson Next';
+  src: url('/fonts/atkinson-next-200_800-normal.woff2') format('woff2');
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Atkinson Mono';
+  src: url('/fonts/atkinson-mono-200_800-normal.woff2') format('woff2');
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
 
 @layer base {
   :root {
-    --background: 0 0% 8%;
-    --foreground: 0 0% 95%;
+    /* wall, plate, ink, muted, line */
+    --background: 84 14% 93%;
+    --foreground: 158 17% 9%;
+    --card: 0 0% 100%;
+    --card-foreground: 158 17% 9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 158 17% 9%;
 
-    --card: 0 0% 16%;
-    --card-foreground: 0 0% 95%;
+    --primary: 158 17% 9%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 90 11% 89%;
+    --secondary-foreground: 158 17% 9%;
+    --muted: 90 11% 89%;
+    --muted-foreground: 153 7% 32%;
+    --accent: 90 11% 89%;
+    --accent-foreground: 158 17% 9%;
 
-    --popover: 0 0% 16%;
-    --popover-foreground: 0 0% 95%;
+    --success: 152 56% 27%;
+    --success-foreground: 0 0% 100%;
+    /* text-safe amber (AA on plate); the bright call light is --call */
+    --warning: 38 100% 26%;
+    --warning-foreground: 0 0% 100%;
+    --destructive: 4 71% 37%;
+    --destructive-foreground: 0 0% 100%;
+    --call: 40 98% 47%;
 
-    --primary: 14 87% 50%;
-    --primary-foreground: 0 0% 0%;
+    --border: 98 9% 82%;
+    --input: 98 9% 78%;
+    --ring: 158 17% 9%;
+    --radius: 6px;
 
-    --secondary: 0 0% 46%;
-    --secondary-foreground: 0 0% 95%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 158 17% 9%;
+    --sidebar-primary: 158 17% 9%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 90 11% 89%;
+    --sidebar-accent-foreground: 158 17% 9%;
+    --sidebar-border: 98 9% 82%;
+    --sidebar-ring: 158 17% 9%;
 
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 65%;
+    /* type scale */
+    --t-xl: clamp(2.25rem, 1.4rem + 3.2vw, 4rem);
+    --t-l: clamp(1.5rem, 1.2rem + 1.2vw, 2.25rem);
+    --t-m: 1.25rem;
+    --t-body: 1rem;
+    --t-s: 0.875rem;
+    --t-xs: 0.8125rem;
 
-    --accent: 45 100% 50%;
-    --accent-foreground: 0 0% 0%;
-
-    --success: 145 65% 45%;
-    --success-foreground: 0 0% 0%;
-
-    --warning: 45 100% 50%;
-    --warning-foreground: 0 0% 0%;
-
-    --destructive: 14 87% 50%;
-    --destructive-foreground: 0 0% 0%;
-
-    --border: 0 0% 20%;
-    --input: 0 0% 15%;
-    --ring: 14 87% 50%;
-
-    --radius: 1.5rem;
-
-    --sidebar-background: 0 0% 0%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 14 87% 50%;
-    --sidebar-primary-foreground: 0 0% 0%;
-    --sidebar-accent: 0 0% 26%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 0 0% 26%;
-    --sidebar-ring: 14 87% 50%;
-  }
-
-  .dark {
-    --background: 0 0% 5%;
-    --foreground: 0 0% 95%;
-
-    --card: 0 0% 8%;
-    --card-foreground: 0 0% 95%;
-
-    --popover: 0 0% 8%;
-    --popover-foreground: 0 0% 95%;
-
-    --primary: 14 87% 60%;
-    --primary-foreground: 0 0% 0%;
-
-    --secondary: 0 0% 60%;
-    --secondary-foreground: 0 0% 0%;
-
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 60%;
-
-    --accent: 45 100% 60%;
-    --accent-foreground: 0 0% 0%;
-
-    --success: 145 65% 50%;
-    --success-foreground: 0 0% 0%;
-
-    --warning: 45 100% 60%;
-    --warning-foreground: 0 0% 0%;
-
-    --destructive: 14 87% 60%;
-    --destructive-foreground: 0 0% 0%;
-
-    --border: 0 0% 18%;
-    --input: 0 0% 12%;
-    --ring: 14 87% 60%;
-
-    --sidebar-background: 0 0% 0%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 14 87% 60%;
-    --sidebar-primary-foreground: 0 0% 0%;
-    --sidebar-accent: 0 0% 20%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 0 0% 18%;
-    --sidebar-ring: 14 87% 60%;
+    /* motion */
+    --settle: cubic-bezier(0.2, 0.7, 0.1, 1);
+    --swing: 0.5s;
+    --gutter: clamp(16px, 2vw, 28px);
   }
 }
 
@@ -105,94 +86,573 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
   body {
     @apply bg-background text-foreground;
+    font-family: 'Atkinson Next', ui-sans-serif, system-ui, sans-serif;
+    font-size: var(--t-body);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: hsl(var(--call));
+    color: hsl(var(--foreground));
+  }
+
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  h1, h2, h3, h4 {
+    text-wrap: balance;
+  }
+
+  .tabular, time, .font-mono {
+    font-variant-numeric: tabular-nums;
   }
 }
 
-/* TimeSpot Typography System */
+/* Type roles (class names kept so existing screens adopt the new scale) */
 @layer base {
   .text-display {
-    font-size: clamp(120px, 8vw, 140px);
-    font-weight: 800;
-    line-height: 1;
-    letter-spacing: -0.02em;
+    font-size: var(--t-xl);
+    font-weight: 780;
+    line-height: 0.95;
+    letter-spacing: -0.035em;
   }
 
   .text-headline-1 {
-    font-size: clamp(32px, 4vw, 40px);
-    font-weight: 500;
-    line-height: 1.2;
-    letter-spacing: -0.01em;
+    font-size: var(--t-xl);
+    font-weight: 760;
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+    margin-left: -0.04em; /* optical alignment of the first glyph */
   }
 
   .text-headline-2 {
-    font-size: clamp(24px, 3vw, 28px);
-    font-weight: 600;
-    line-height: 1.3;
-    letter-spacing: -0.005em;
+    font-size: var(--t-m);
+    font-weight: 680;
+    line-height: 1.2;
+    letter-spacing: -0.012em;
   }
 
   .text-body {
-    font-size: clamp(14px, 2vw, 16px);
+    font-size: var(--t-body);
     font-weight: 400;
-    line-height: 1.5;
+    line-height: 1.55;
   }
 
   .text-caption {
-    font-size: clamp(12px, 1.5vw, 13px);
+    font-size: var(--t-xs);
     font-weight: 400;
-    line-height: 1.4;
+    line-height: 1.45;
   }
 
   .text-small {
-    font-size: 11px;
-    font-weight: 400;
-    line-height: 1.3;
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.35;
+  }
+
+  /* Wayfinding sign label (floor names, table headers): the only small caps in the system */
+  .sign-label {
+    font-family: 'Atkinson Mono', ui-monospace, monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
 }
 
-/* UI Enhancement Utilities */
+/* Legacy utility names, neutralised: the old theme's glow, gradient and scale effects */
 @layer utilities {
-  .card-hover {
-    transition: all 200ms ease-in-out;
-  }
-  
-  .card-hover:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(230, 74, 25, 0.15);
-  }
-  
-  .btn-ripple {
+  .card-hover { transition: border-color 0.35s var(--settle); }
+  @media (hover: hover) { .card-hover:hover { border-color: hsl(var(--foreground) / 0.35); } }
+  .btn-ripple { }
+  .hover-glow { }
+  .transition-smooth { transition: all 300ms var(--settle); }
+  .text-gradient-primary { color: hsl(var(--foreground)); }
+  .pulse-primary { }
+}
+
+/* ---------------------------------------------------------------------------------
+   Doors: every resident is shown as their own coloured door (DESIGN.md, concept card)
+   --------------------------------------------------------------------------------- */
+@layer components {
+  .door {
+    --door: #1e6b47;
+    --door-ink: #fff;
     position: relative;
+    display: block;
+    perspective: 900px;
+    border-radius: 6px 6px 0 0;
+    /* the frame and the room behind the leaf */
+    background: hsl(var(--card));
+    box-shadow: inset 0 0 0 1px hsl(var(--foreground) / 0.18);
+    isolation: isolate;
+  }
+  .door__behind {
+    position: absolute;
+    inset: 0;
+    padding: 14% 8% 9% 24%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    line-height: 1.3;
+    color: hsl(var(--foreground));
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity var(--swing) var(--settle);
+  }
+  .door__leaf {
+    position: absolute;
+    inset: 4px 4px 0 4px;
+    border-radius: 4px 4px 0 0;
+    background: var(--door);
+    color: var(--door-ink);
+    transform-origin: left center;
+    transform-style: preserve-3d;
+    transition: transform var(--swing) var(--settle), box-shadow var(--swing) var(--settle);
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.12);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 14%;
+  }
+  /* raised panels on the leaf, so it reads as a door and not a card */
+  .door__leaf::before {
+    content: '';
+    position: absolute;
+    inset: 42% 16% 10% 16%;
+    border-radius: 2px;
+    box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 0.22);
+  }
+  .door__plate {
+    font-family: 'Atkinson Mono', ui-monospace, monospace;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    background: #fff;
+    color: #131b18;
+    border-radius: 3px;
+    padding: 0.15em 0.45em;
+    line-height: 1.15;
+    font-variant-numeric: tabular-nums;
+  }
+  .door__name {
+    margin-top: 0.5em;
+    font-weight: 700;
+    line-height: 1.1;
+    text-align: center;
+    padding: 0 0.4em;
+  }
+  .door__handle {
+    position: absolute;
+    right: 12%;
+    top: 56%;
+    width: 7%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: rgb(255 255 255 / 0.85);
+    box-shadow: 0 1px 0 rgb(0 0 0 / 0.25);
+  }
+  /* nurse-call light above the door: on when the room needs someone */
+  .door__call {
+    position: absolute;
+    left: 50%;
+    top: -14px;
+    width: 26px;
+    height: 7px;
+    margin-left: -13px;
+    border-radius: 3px 3px 1px 1px;
+    background: hsl(var(--foreground) / 0.16);
+  }
+  .door[data-call='on'] .door__call {
+    background: hsl(var(--call));
+    box-shadow: inset 0 -2px 0 rgb(0 0 0 / 0.18);
+  }
+  /* the lamp stays lit; only its glow breathes, so every still frame shows it on */
+  .door[data-call='on'] .door__call::after {
+    content: '';
+    position: absolute;
+    inset: -6px -8px;
+    border-radius: 8px;
+    background: radial-gradient(closest-side, hsl(var(--call) / 0.7), hsl(var(--call) / 0));
+    animation: call-light 2.4s ease-in-out infinite;
+  }
+
+  /* The swing: hover or keyboard focus opens the door on its hinge */
+  @media (hover: hover) {
+    .door-host:hover .door__leaf {
+      transform: rotateY(-76deg);
+      box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.12), 18px 0 28px -10px rgb(0 0 0 / 0.35);
+    }
+    .door-host:hover .door__behind { opacity: 1; }
+  }
+  .door-host:focus-visible .door__leaf,
+  .door-host:focus-within .door__leaf[data-open-on-focus] {
+    transform: rotateY(-76deg);
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.12), 18px 0 28px -10px rgb(0 0 0 / 0.35);
+  }
+  .door-host:focus-visible .door__behind { opacity: 1; }
+  .door-host:active .door__leaf { transform: rotateY(-70deg); }
+
+  /* Door chip: the resident's door at text size, used in every list */
+  .door-chip {
+    --door: #1e6b47;
+    --door-ink: #fff;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+  .door-chip__leaf {
+    position: relative;
+    flex: none;
+    width: 1.55rem;
+    height: 2.1rem;
+    border-radius: 3px 3px 0 0;
+    background: var(--door);
+    color: var(--door-ink);
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.14), 0 0 0 1px hsl(var(--foreground) / 0.08);
+    transform-origin: left center;
+    transition: transform 0.45s var(--settle);
+    display: grid;
+    place-items: start center;
+    padding-top: 0.28rem;
+  }
+  .door-chip__leaf::after {
+    content: '';
+    position: absolute;
+    right: 0.22rem;
+    top: 55%;
+    width: 0.2rem;
+    height: 0.2rem;
+    border-radius: 50%;
+    background: rgb(255 255 255 / 0.85);
+  }
+  .door-chip__no {
+    font-family: 'Atkinson Mono', ui-monospace, monospace;
+    font-size: 0.5625rem;
+    font-weight: 700;
+    line-height: 1;
+    background: #fff;
+    color: #131b18;
+    border-radius: 2px;
+    padding: 0.08rem 0.12rem;
+    font-variant-numeric: tabular-nums;
+  }
+  /* rows and cards that lead to a resident: the chip's door eases ajar */
+  @media (hover: hover) {
+    .door-row:hover .door-chip__leaf,
+    a.door-chip:hover .door-chip__leaf { transform: perspective(160px) rotateY(-32deg); }
+  }
+  .door-row:focus-visible .door-chip__leaf,
+  .door-row:focus-within .door-chip__leaf,
+  a.door-chip:focus-visible .door-chip__leaf { transform: perspective(160px) rotateY(-32deg); }
+
+  /* Primary button: an ink panel swings in from the hinge side */
+  .btn-swing {
+    position: relative;
+    isolation: isolate;
     overflow: hidden;
   }
-  
-  .hover-glow:hover {
-    box-shadow: 0 0 20px rgba(230, 74, 25, 0.3);
+  .btn-swing::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: hsl(var(--call));
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 0.45s var(--settle);
   }
-  
-  .transition-smooth {
-    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  @media (hover: hover) {
+    .btn-swing:hover { color: hsl(var(--foreground)); }
+    .btn-swing:hover::before { transform: scaleX(1); }
   }
+  .btn-swing:focus-visible { color: hsl(var(--foreground)); }
+  .btn-swing:focus-visible::before { transform: scaleX(1); }
+  .btn-swing:active { transform: scale(0.98); }
 
-  .text-gradient-primary {
-    background: linear-gradient(135deg, #E64A19 0%, #FF6B35 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  /* Secondary/outline buttons: the border floods with ink from the hinge side */
+  .btn-line {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
   }
-
-  .pulse-primary {
-    animation: pulse-primary 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  .btn-line::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: hsl(var(--foreground));
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 0.45s var(--settle);
   }
+  @media (hover: hover) {
+    .btn-line:hover { color: hsl(var(--background)); }
+    .btn-line:hover::before { transform: scaleX(1); }
+  }
+  .btn-line:focus-visible { color: hsl(var(--background)); }
+  .btn-line:focus-visible::before { transform: scaleX(1); }
+  .btn-line:active { transform: scale(0.98); }
 
-  @keyframes pulse-primary {
-    0%, 100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.8;
-    }
+  /* Ghost/icon buttons: a small wall-coloured plate lights up behind */
+  .btn-plate { transition: background-color 0.3s var(--settle), transform 0.3s var(--settle); }
+  @media (hover: hover) { .btn-plate:hover { background: hsl(var(--muted)); transform: translateY(-1px); } }
+  .btn-plate:active { transform: scale(0.96); }
+
+  /* Inline links in text: underline at rest that thickens */
+  .text-link {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+    transition: text-decoration-thickness 0.3s var(--settle);
+  }
+  @media (hover: hover) { .text-link:hover { text-decoration-thickness: 3px; } }
+  .text-link:focus-visible { text-decoration-thickness: 3px; }
+
+  /* Arrows travel along their direction */
+  .arrow-host .arrow { transition: transform 0.35s var(--settle); }
+  @media (hover: hover) { .arrow-host:hover .arrow { transform: translateX(4px); } }
+  .arrow-host:focus-visible .arrow { transform: translateX(4px); }
+
+  /* Page change: the room's lights come on */
+  .page-enter {
+    animation: lights-on 0.32s var(--settle) both;
   }
 }
+
+@keyframes call-light {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.85); }
+}
+
+@keyframes lights-on {
+  from { opacity: 0.35; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Door → resident page: the clicked door and the page's door share a view-transition name */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.32s;
+  animation-timing-function: cubic-bezier(0.2, 0.7, 0.1, 1);
+}
+::view-transition-group(resident-door) {
+  animation-duration: 0.45s;
+  animation-timing-function: cubic-bezier(0.2, 0.7, 0.1, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .door[data-call='on'] .door__call::after { animation: none; }
+  .page-enter { animation: none; }
+  /* doors stay shut; the room's details are shown as a visible state instead */
+  .door-host:hover .door__leaf, .door-host:focus-visible .door__leaf, .door-host:active .door__leaf,
+  .door-row:hover .door-chip__leaf, .door-row:focus-within .door-chip__leaf, a.door-chip:hover .door-chip__leaf {
+    transform: none !important;
+  }
+  .door-host:hover, .door-host:focus-visible { outline: 3px solid hsl(var(--foreground)); outline-offset: 3px; }
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}
+
+/* Directory (sidebar): the marker shows where you are and slides in where you point */
+@layer components {
+  .directory-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding-left: 1.25rem !important;
+    color: hsl(var(--muted-foreground));
+    font-weight: 600;
+  }
+  .directory-marker {
+    position: absolute;
+    left: 0.35rem;
+    top: 50%;
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-top: -0.25rem;
+    border-radius: 50%;
+    background: hsl(var(--foreground));
+    transform: translateX(-6px) scale(0);
+    transition: transform 0.4s var(--settle);
+  }
+  .directory-label, .directory-item svg { transition: transform 0.4s var(--settle); }
+  @media (hover: hover) {
+    .directory-item:hover { color: hsl(var(--foreground)); }
+    .directory-item:hover .directory-marker { transform: none; }
+    .directory-item:hover .directory-label, .directory-item:hover svg { transform: translateX(3px); }
+  }
+  .directory-item:focus-visible { color: hsl(var(--foreground)); }
+  .directory-item:focus-visible .directory-marker { transform: none; }
+  .directory-item.is-here { color: hsl(var(--foreground)); font-weight: 750; background: hsl(var(--muted)); }
+  .directory-item.is-here .directory-marker { transform: none; background: hsl(var(--foreground)); }
+  [data-collapsible='icon'] .directory-item { padding-left: 0.5rem !important; }
+  [data-collapsible='icon'] .directory-marker { display: none; }
+}
+
+/* The corridor: floors as rows of doors standing on a floor line */
+@layer components {
+  .corridor { display: grid; gap: 2.25rem; }
+  .corridor__floor {
+    --caption: 1.9rem;
+    --rail: 92px;
+    display: grid;
+    grid-template-columns: minmax(7rem, 9rem) 1fr;
+    align-items: end;
+    gap: var(--gutter);
+  }
+  .corridor__sign {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    margin-bottom: calc(var(--caption) + 0.2rem);
+    border-left: 3px solid hsl(var(--foreground));
+    padding: 0.1rem 0 0.1rem 0.75rem;
+  }
+  .corridor__doors {
+    position: relative;
+    display: flex;
+    gap: clamp(1rem, 2.4vw, 2.5rem);
+    padding: 22px 1.25rem var(--caption);
+    /* the corridor floor the doors stand on, with a little light along it; captions sit below */
+    /* floor line, the contrasting handrail of a dementia-friendly corridor, and light along the floor */
+    background:
+      linear-gradient(hsl(var(--foreground)) 0 0) left calc(100% - var(--caption)) / 100% 3px no-repeat,
+      linear-gradient(hsl(var(--foreground) / 0.12) 0 0) left calc(100% - var(--caption) - var(--rail) + 6px) / 100% 2px no-repeat,
+      linear-gradient(hsl(var(--foreground) / 0.72) 0 0) left calc(100% - var(--caption) - var(--rail)) / 100% 6px no-repeat,
+      linear-gradient(to top, transparent var(--caption), hsl(var(--foreground) / 0.05) var(--caption), transparent 50%);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .corridor__doors::-webkit-scrollbar { display: none; }
+  .corridor__doors > li { scroll-snap-align: start; }
+  .corridor__door {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-radius: 6px 6px 0 0;
+  }
+  .corridor__caption {
+    position: absolute;
+    top: calc(100% + 0.45rem);
+    font-family: 'Atkinson Mono', ui-monospace, monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: hsl(var(--muted-foreground));
+    white-space: nowrap;
+  }
+  .corridor__caption.is-urgent { color: hsl(var(--warning)); }
+  @media (max-width: 767px) {
+    .corridor__floor { grid-template-columns: 1fr; gap: 0.75rem; }
+    .corridor__sign { margin-bottom: 0; flex-direction: row; align-items: baseline; gap: 0.75rem; }
+    .corridor__doors { margin-inline: calc(var(--gutter) * -1); padding-inline: var(--gutter); }
+  }
+}
+
+/* Copy that only makes sense with a mouse */
+.pointer-only { display: none; }
+@media (hover: hover) and (pointer: fine) { .pointer-only { display: block; } }
+@media (hover: hover) { .arrow-back:hover .arrow { transform: translateX(-4px); } }
+.arrow-back:focus-visible .arrow { transform: translateX(-4px); }
+
+/* Login: a short stretch of corridor standing on its floor line */
+.login-corridor {
+  display: flex;
+  gap: clamp(0.75rem, 2vw, 1.75rem);
+  padding: 22px 0 0;
+  border-bottom: 3px solid hsl(var(--foreground));
+  overflow: hidden;
+}
+@media (max-width: 1023px) {
+  .login-corridor .login-corridor__door { width: 72px; height: 116px; font-size: 0.7rem; }
+}
+
+/* 404: plaster where a door used to be */
+.notfound-wall {
+  position: relative;
+  height: 220px;
+  border-bottom: 3px solid hsl(var(--foreground));
+  background: linear-gradient(to top, hsl(var(--foreground) / 0.05), transparent 45%);
+}
+.notfound-outline {
+  position: absolute;
+  bottom: 0;
+  left: 12%;
+  width: 120px;
+  height: 196px;
+  border: 2px dashed hsl(var(--foreground) / 0.3);
+  border-bottom: 0;
+  border-radius: 6px 6px 0 0;
+}
+.notfound-plate {
+  position: absolute;
+  left: calc(12% + 38px);
+  top: 46px;
+  font-size: 0.9rem !important;
+  padding: 0.25rem 0.5rem !important;
+  border: 1px solid hsl(var(--foreground) / 0.25);
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+@media (max-width: 767px) {
+  .corridor .door { width: 92px !important; height: 148px !important; font-size: 0.75rem !important; }
+  .corridor__floor { --rail: 58px; }
+}
+
+@media (hover: none) { .door__behind { display: none; } }
+
+/* Loading stand-in with the height of a two-floor corridor, so nothing jumps when it arrives */
+.corridor-skeleton { height: calc(2 * (236px + 22px + 1.9rem) + 2.25rem); }
+@media (max-width: 767px) { .corridor-skeleton { height: calc(2 * (148px + 22px + 1.9rem + 2.3rem) + 2.25rem); } }
+
+/* Tabs: an ink marker draws under the tab you point at */
+.tab-trigger { position: relative; }
+.tab-trigger::after {
+  content: ''; position: absolute; left: 0.75rem; right: 0.75rem; bottom: 0.2rem; height: 2px;
+  background: hsl(var(--foreground)); transform: scaleX(0); transform-origin: left; transition: transform 0.4s var(--settle);
+}
+@media (hover: hover) { .tab-trigger:hover { color: hsl(var(--foreground)); } .tab-trigger:hover::after { transform: scaleX(1); } }
+.tab-trigger:focus-visible::after { transform: scaleX(1); }
+
+/* The logo's door eases ajar when you point at it */
+.brand-link svg { transition: transform 0.45s var(--settle); transform-origin: 25% 50%; }
+@media (hover: hover) { .brand-link:hover svg { transform: perspective(60px) rotateY(-28deg); } }
+.brand-link:focus-visible svg { transform: perspective(60px) rotateY(-28deg); }
+
+/* Page header: title and description on the left, actions on the right; actions wrap below on phones */
+.page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.25rem 1.5rem;
+}
+.page-head > :first-child { flex: 1 1 26rem; min-width: 0; }
+.page-head > :not(:first-child) { flex: none; }
+@media (max-width: 639px) {
+  .page-head > :first-child { flex-basis: 100%; }
+  .page-head > :not(:first-child) { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+}
+
+/* Grid children may shrink, so wide tables scroll inside their card instead of pushing the page */
+#main .grid > * { min-width: 0; }

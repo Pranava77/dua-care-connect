@@ -1,1 +1,15 @@
-/*    /index.html   200
+# Known app routes render the SPA with 200; anything else still renders it (the designed 404 page)
+# but with a real 404 status.
+/                 /index.html   200
+/login            /index.html   200
+/about            /index.html   200
+/dashboard        /index.html   200
+/residents        /index.html   200
+/residents/*      /index.html   200
+/medical          /index.html   200
+/documents        /index.html   200
+/accounting       /index.html   200
+/hr               /index.html   200
+/reports          /index.html   200
+/settings         /index.html   200
+/*                /index.html   404

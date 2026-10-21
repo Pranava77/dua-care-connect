@@ -36,6 +36,7 @@ export default {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
         },
+        call: "hsl(var(--call))",
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
@@ -75,7 +76,15 @@ export default {
           ring: "hsl(var(--sidebar-ring))",
         },
       },
+      fontFamily: {
+        sans: ['"Atkinson Next"', "ui-sans-serif", "system-ui", "sans-serif"],
+        mono: ['"Atkinson Mono"', "ui-monospace", "monospace"],
+      },
       borderRadius: {
+        // one radius rule (DESIGN.md): 6px everywhere; xl/2xl/3xl collapse to it
+        "3xl": "var(--radius)",
+        "2xl": "var(--radius)",
+        xl: "var(--radius)",
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",

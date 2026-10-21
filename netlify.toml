@@ -2,10 +2,7 @@
   publish = "dist"
   command = "npm run build"
 
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+# SPA routing lives in public/_redirects (known routes 200, everything else the 404 page with status 404).
 
 [build.environment]
   NODE_VERSION = "18"
