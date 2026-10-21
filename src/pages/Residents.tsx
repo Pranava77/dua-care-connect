@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -36,14 +36,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { mockApi } from "@/lib/mockData";
+import { useDeleteResident, useResidents } from "@/hooks/queries/residents";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import type { Resident } from "@/lib/types";
 
 export default function Residents() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [residents, setResidents] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<FilterOptions>({});
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [residentToDelete, setResidentToDelete] = useState<any>(null);
@@ -52,34 +51,15 @@ export default function Residents() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (user) {
-      fetchResidents();
-    }
-  }, [user]);
-
-  const fetchResidents = async () => {
-    try {
-      const { data, error } = await mockApi.getResidents();
-
-      if (error) throw error;
-      setResidents(data || []);
-    } catch (error: any) {
-      toast.error("Failed to load residents: " + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: residents = [], isLoading: loading, refetch: fetchResidents } = useResidents();
+  const deleteResident = useDeleteResident();
 
   const handleDeleteResident = async () => {
     if (!residentToDelete) return;
     
     try {
-      const { error } = await mockApi.deleteResident(residentToDelete.id);
-      if (error) throw error;
-      
+      await deleteResident.mutateAsync(residentToDelete.id);
       toast.success("Resident deleted successfully");
-      fetchResidents();
     } catch (error: any) {
       toast.error("Failed to delete resident: " + error.message);
     } finally {
@@ -108,7 +88,7 @@ export default function Residents() {
     
     // Status filter
     if (filters.status) {
-      matchesFilters = matchesFilters && resident.status === filters.status;
+      matchesFilters = matchesFilters && (resident as Resident & { status?: string }).status === filters.status;
     }
     
     // Date range filter

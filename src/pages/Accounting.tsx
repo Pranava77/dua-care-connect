@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +8,8 @@ import { CreateInvoiceDialog } from "@/components/CreateInvoiceDialog";
 import { EditInvoiceDialog } from "@/components/EditInvoiceDialog";
 import { InvoiceDetailsDialog } from "@/components/InvoiceDetailsDialog";
 import { RecordPaymentDialog } from "@/components/RecordPaymentDialog";
-import { mockApi } from "@/lib/mockData";
+import { useDeleteInvoice, useFinancialStats, useInvoices, useUpdateInvoice } from "@/hooks/queries/accounting";
+import { reportsApi } from "@/lib/api/reports";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import {
@@ -44,62 +45,33 @@ import {
 } from "@/components/ui/select";
 
 export default function Accounting() {
-  const [invoices, setInvoices] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState<any>(null);
   const [editingInvoice, setEditingInvoice] = useState<any>(null);
   const [viewingInvoice, setViewingInvoice] = useState<any>(null);
-  const [financialStats, setFinancialStats] = useState({
-    totalRevenue: 0,
-    outstandingDues: 0,
-    thisMonthRevenue: 0,
-    paidToday: 0,
-    paidTodayCount: 0
-  });
   const { user } = useAuth();
 
-  useEffect(() => {
-    if (user) {
-      fetchInvoices();
-      fetchFinancialStats();
-    }
-  }, [user]);
-
-  const fetchInvoices = async () => {
-    try {
-      const { data, error } = await mockApi.getInvoices();
-      if (error) throw error;
-      setInvoices(data || []);
-    } catch (error: any) {
-      toast.error("Failed to load invoices: " + error.message);
-    } finally {
-      setLoading(false);
-    }
+  const invoicesQuery = useInvoices();
+  const statsQuery = useFinancialStats();
+  const invoices = invoicesQuery.data ?? [];
+  const loading = invoicesQuery.isLoading;
+  const financialStats = statsQuery.data ?? {
+    totalRevenue: 0, outstandingDues: 0, thisMonthRevenue: 0, paidToday: 0, paidTodayCount: 0,
   };
-
-  const fetchFinancialStats = async () => {
-    try {
-      const { data, error } = await mockApi.getFinancialStats();
-      if (error) throw error;
-      setFinancialStats(data);
-    } catch (error: any) {
-      console.error("Failed to load financial stats:", error.message);
-    }
-  };
+  // Mutations invalidate both queries; dialogs still accept an explicit refresh callback.
+  const fetchInvoices = () => invoicesQuery.refetch();
+  const fetchFinancialStats = () => statsQuery.refetch();
+  const deleteInvoice = useDeleteInvoice();
+  const updateInvoice = useUpdateInvoice();
 
   const handleDeleteInvoice = async () => {
     if (!invoiceToDelete) return;
     
     try {
-      const { error } = await mockApi.deleteInvoice(invoiceToDelete.id);
-      if (error) throw error;
-      
+      await deleteInvoice.mutateAsync(invoiceToDelete.id);
       toast.success("Invoice deleted successfully");
-      fetchInvoices();
-      fetchFinancialStats();
     } catch (error: any) {
       toast.error("Failed to delete invoice: " + error.message);
     } finally {
@@ -115,12 +87,8 @@ export default function Accounting() {
 
   const handleCancelInvoice = async (invoice: any) => {
     try {
-      const { error } = await mockApi.updateInvoice(invoice.id, { status: 'Cancelled' });
-      if (error) throw error;
-      
+      await updateInvoice.mutateAsync({ id: invoice.id, data: { status: 'Cancelled' } });
       toast.success("Invoice cancelled successfully");
-      fetchInvoices();
-      fetchFinancialStats();
     } catch (error: any) {
       toast.error("Failed to cancel invoice: " + error.message);
     }
@@ -128,11 +96,8 @@ export default function Accounting() {
 
   const handleExport = async () => {
     try {
-      const { data, error } = await mockApi.exportData('invoices');
-      if (error) throw error;
-      toast.success("Export started. Download will begin shortly.");
-      // In a real app, this would trigger a file download
-      console.log("Export URL:", data.download_url);
+      await reportsApi.exportCsv('invoices');
+      toast.success("Invoices exported");
     } catch (error: any) {
       toast.error("Failed to export data: " + error.message);
     }

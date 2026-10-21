@@ -10,7 +10,8 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Residents from "./pages/Residents";
 import Medical from "./pages/Medical";
-import Documents from "./pages/Documents";
+import About from "./pages/About";
+import DocumentLibrary from "./pages/DocumentLibrary";
 import Accounting from "./pages/Accounting";
 import HR from "./pages/HR";
 import Reports from "./pages/Reports";
@@ -69,7 +70,8 @@ const AppRoutes = () => {
       <Route path="/residents" element={<ProtectedRoute><DashboardLayout><Residents /></DashboardLayout></ProtectedRoute>} />
       <Route path="/residents/:id" element={<ProtectedRoute><DashboardLayout><ResidentDetails /></DashboardLayout></ProtectedRoute>} />
       <Route path="/medical" element={<ProtectedRoute><DashboardLayout><Medical /></DashboardLayout></ProtectedRoute>} />
-      <Route path="/documents" element={<Documents />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/documents" element={<ProtectedRoute><DashboardLayout><DocumentLibrary /></DashboardLayout></ProtectedRoute>} />
       <Route path="/accounting" element={<ProtectedRoute><DashboardLayout><Accounting /></DashboardLayout></ProtectedRoute>} />
       <Route path="/hr" element={<ProtectedRoute><DashboardLayout><HR /></DashboardLayout></ProtectedRoute>} />
       <Route path="/reports" element={<ProtectedRoute><DashboardLayout><Reports /></DashboardLayout></ProtectedRoute>} />

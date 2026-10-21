@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,14 +23,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { mockApi } from "@/lib/mockData";
+import {
+  useDeleteMedicalRecord,
+  useDeletePrescription,
+  useMedicalRecords,
+  usePrescriptions,
+} from "@/hooks/queries/medical";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
 export default function Medical() {
-  const [medicalRecords, setMedicalRecords] = useState<any[]>([]);
-  const [prescriptions, setPrescriptions] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [deleteRecordDialogOpen, setDeleteRecordDialogOpen] = useState(false);
   const [deletePrescriptionDialogOpen, setDeletePrescriptionDialogOpen] = useState(false);
   const [recordToDelete, setRecordToDelete] = useState<any>(null);
@@ -39,40 +41,22 @@ export default function Medical() {
   const [editingPrescription, setEditingPrescription] = useState<any>(null);
   const { user } = useAuth();
 
-  useEffect(() => {
-    if (user) {
-      fetchData();
-    }
-  }, [user]);
-
-  const fetchData = async () => {
-    try {
-      const [recordsResult, prescriptionsResult] = await Promise.all([
-        mockApi.getMedicalRecords(),
-        mockApi.getPrescriptions()
-      ]);
-
-      if (recordsResult.error) throw recordsResult.error;
-      if (prescriptionsResult.error) throw prescriptionsResult.error;
-
-      setMedicalRecords(recordsResult.data || []);
-      setPrescriptions(prescriptionsResult.data || []);
-    } catch (error: any) {
-      toast.error("Failed to load medical data: " + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const records = useMedicalRecords();
+  const prescriptionsQuery = usePrescriptions();
+  const medicalRecords = records.data ?? [];
+  const prescriptions = prescriptionsQuery.data ?? [];
+  const loading = records.isLoading || prescriptionsQuery.isLoading;
+  const fetchData = () => Promise.all([records.refetch(), prescriptionsQuery.refetch()]);
+  const deleteRecord = useDeleteMedicalRecord();
+  const deletePrescription = useDeletePrescription();
 
   const handleDeleteRecord = async () => {
     if (!recordToDelete) return;
     
     try {
-      const { error } = await mockApi.deleteMedicalRecord(recordToDelete.id);
-      if (error) throw error;
-      
+      await deleteRecord.mutateAsync(recordToDelete.id);
+
       toast.success("Medical record deleted successfully");
-      fetchData();
     } catch (error: any) {
       toast.error("Failed to delete medical record: " + error.message);
     } finally {
@@ -85,11 +69,9 @@ export default function Medical() {
     if (!prescriptionToDelete) return;
     
     try {
-      const { error } = await mockApi.deletePrescription(prescriptionToDelete.id);
-      if (error) throw error;
-      
+      await deletePrescription.mutateAsync(prescriptionToDelete.id);
+
       toast.success("Prescription deleted successfully");
-      fetchData();
     } catch (error: any) {
       toast.error("Failed to delete prescription: " + error.message);
     } finally {

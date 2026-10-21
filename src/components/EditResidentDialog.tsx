@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { mockApi } from "@/lib/mockData";
+import { useUpdateResident } from "@/hooks/queries/residents";
 import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
 
@@ -26,6 +26,7 @@ interface EditResidentDialogProps {
 export function EditResidentDialog({ resident, open, onOpenChange, onSuccess }: EditResidentDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const updateResident = useUpdateResident();
   const { user } = useAuth();
   
   const [formData, setFormData] = useState<{
@@ -62,15 +63,13 @@ export function EditResidentDialog({ resident, open, onOpenChange, onSuccess }: 
     try {
       const validated = residentSchema.parse(formData);
 
-      const { error } = await mockApi.updateResident(resident.id, {
+      await updateResident.mutateAsync({ id: resident.id, data: {
         name: validated.name,
         room_number: validated.room_number,
         date_of_birth: validated.date_of_birth,
         emergency_contact: validated.emergency_contact,
         medical_conditions: validated.medical_conditions || [],
-      });
-
-      if (error) throw error;
+      } });
 
       toast({
         title: "Success",

@@ -3,10 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Phone, Home, Heart, FileText } from "lucide-react";
-import { MockResident } from "@/lib/mockData";
+import type { Resident } from "@/lib/types";
 
 interface ResidentProfileDialogProps {
-  resident: MockResident;
+  resident: Resident;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }

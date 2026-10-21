@@ -1,0 +1,92 @@
+[importlinter]
+root_package = app
+include_external_packages = True
+
+[importlinter:contract:core-independent]
+name = Core depends on nothing else in the app
+type = forbidden
+source_modules = app.core
+forbidden_modules =
+    app.domain
+    app.ai
+    app.infra
+    app.api
+    app.adapters
+    app.container
+
+[importlinter:contract:domain-knows-no-ai]
+name = Domain never imports AI, infrastructure or HTTP code
+type = forbidden
+source_modules = app.domain
+forbidden_modules =
+    app.ai
+    app.infra
+    app.api
+    app.adapters
+    app.container
+    fastapi
+    chromadb
+    google
+
+[importlinter:contract:ai-through-ports]
+name = AI uses ports and DTOs only (no SDKs, no repositories, no models)
+type = forbidden
+source_modules = app.ai
+forbidden_modules =
+    app.infra
+    app.api
+    app.adapters
+    app.container
+    app.domain.accounting.models
+    app.domain.accounting.repository
+    app.domain.accounting.service
+    app.domain.documents.models
+    app.domain.documents.repository
+    app.domain.documents.service
+    app.domain.medical.models
+    app.domain.medical.repository
+    app.domain.medical.service
+    app.domain.residents.models
+    app.domain.residents.repository
+    app.domain.residents.service
+    app.domain.staff.models
+    app.domain.staff.repository
+    app.domain.staff.service
+    app.domain.users.models
+    app.domain.users.repository
+    app.domain.users.service
+    sqlalchemy
+    chromadb
+    google
+    fastapi
+
+[importlinter:contract:infra-is-leaf]
+name = Infrastructure adapters do not reach into domain or HTTP code
+type = forbidden
+source_modules = app.infra
+forbidden_modules =
+    app.domain
+    app.api
+    app.adapters
+    app.container
+
+[importlinter:contract:routers-thin]
+name = Routers never touch the database or repositories directly
+type = forbidden
+allow_indirect_imports = True
+source_modules = app.api.routers
+forbidden_modules =
+    sqlalchemy
+    app.infra
+    app.domain.accounting.repository
+    app.domain.documents.repository
+    app.domain.medical.repository
+    app.domain.residents.repository
+    app.domain.staff.repository
+    app.domain.users.repository
+    app.domain.accounting.models
+    app.domain.documents.models
+    app.domain.medical.models
+    app.domain.residents.models
+    app.domain.staff.models
+    app.domain.users.models

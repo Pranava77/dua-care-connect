@@ -6,7 +6,11 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { mockApi } from "@/lib/mockData";
+import { useUploadDocument } from "@/hooks/queries/documents";
+import { useResidents } from "@/hooks/queries/residents";
+import { useAiStatus } from "@/hooks/queries/ai";
+import { DocSuggestionReview } from "@/features/doc-intel/DocSuggestionReview";
+import type { CareDocument } from "@/lib/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
 import { Upload, FileText, X } from "lucide-react";
@@ -27,6 +31,11 @@ export function UploadDocumentDialog({ onSuccess }: { onSuccess?: () => void }) 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+  const upload = useUploadDocument();
+  const { data: residents = [] } = useResidents(open);
+  const { data: aiStatus } = useAiStatus();
+  // After upload, the dialog switches to reviewing the AI's category/resident suggestion.
+  const [uploaded, setUploaded] = useState<CareDocument | null>(null);
   
   const [formData, setFormData] = useState<{
     name: string;
@@ -44,11 +53,11 @@ export function UploadDocumentDialog({ onSuccess }: { onSuccess?: () => void }) 
     const file = event.target.files?.[0];
     if (file) {
       // Validate file type
-      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png'];
+      const allowedTypes = ['text/plain', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png'];
       if (!allowedTypes.includes(file.type)) {
         toast({
           title: "Invalid file type",
-          description: "Please select a PDF, DOC, DOCX, JPG, or PNG file",
+          description: "Please select a PDF, DOC, DOCX, TXT, JPG, or PNG file",
           variant: "destructive",
         });
         return;
@@ -105,36 +114,26 @@ export function UploadDocumentDialog({ onSuccess }: { onSuccess?: () => void }) 
         file_size: formatFileSize(selectedFile.size),
       });
 
-      // Convert file to base64 for storage (in a real app, you'd upload to a file server)
-      const fileData = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(selectedFile);
-      });
-
-      const { error } = await mockApi.uploadDocument({
+      const document = await upload.mutateAsync({
+        file: selectedFile,
         name: validated.name,
         category: validated.category,
-        file_type: validated.file_type,
-        file_size: validated.file_size,
         uploaded_by: user.name,
         resident_id: validated.resident_id || undefined,
-        resident_name: validated.resident_id ? 
-          (await mockApi.getResidents()).data.find(r => r.id === validated.resident_id)?.name : undefined,
         status: 'Pending',
         description: validated.description || undefined,
-        file_data: fileData, // Store the actual file data
       });
-
-      if (error) throw error;
 
       toast({
         title: "Success",
         description: "Document uploaded successfully",
       });
       
-      setOpen(false);
+      if (aiStatus?.enabled) {
+        setUploaded(document);
+      } else {
+        setOpen(false);
+      }
       setFormData({
         name: "",
         category: "Admission",
@@ -166,7 +165,7 @@ export function UploadDocumentDialog({ onSuccess }: { onSuccess?: () => void }) 
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(next) => { setOpen(next); if (!next) setUploaded(null); }}>
       <DialogTrigger asChild>
         <Button>
           <Upload className="mr-2 h-4 w-4" />
@@ -178,6 +177,9 @@ export function UploadDocumentDialog({ onSuccess }: { onSuccess?: () => void }) 
           <DialogTitle>Upload Document</DialogTitle>
           <DialogDescription>Upload a new document to the system</DialogDescription>
         </DialogHeader>
+        {uploaded ? (
+          <DocSuggestionReview document={uploaded} onDone={() => { setUploaded(null); setOpen(false); }} />
+        ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* File Upload Section */}
           <div className="space-y-2">
@@ -188,7 +190,7 @@ export function UploadDocumentDialog({ onSuccess }: { onSuccess?: () => void }) 
                 type="file"
                 id="file"
                 onChange={handleFileSelect}
-                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
                 className="hidden"
                 disabled={isLoading}
               />
@@ -218,7 +220,7 @@ export function UploadDocumentDialog({ onSuccess }: { onSuccess?: () => void }) 
                   <Upload className="h-8 w-8 text-muted-foreground mx-auto" />
                   <div>
                     <p className="text-sm font-medium text-foreground">Click to upload or drag and drop</p>
-                    <p className="text-xs text-muted-foreground">PDF, DOC, DOCX, JPG, PNG (max 10MB)</p>
+                    <p className="text-xs text-muted-foreground">PDF, DOC, DOCX, TXT, JPG, PNG (max 10MB)</p>
                   </div>
                   <Button
                     type="button"
@@ -269,6 +271,27 @@ export function UploadDocumentDialog({ onSuccess }: { onSuccess?: () => void }) 
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="resident">Resident</Label>
+            <Select
+              value={formData.resident_id || "none"}
+              onValueChange={(value) => setFormData({ ...formData, resident_id: value === "none" ? "" : value })}
+              disabled={isLoading}
+            >
+              <SelectTrigger id="resident">
+                <SelectValue placeholder="Not linked to a resident" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Not linked to a resident</SelectItem>
+                {residents.map((resident) => (
+                  <SelectItem key={resident.id} value={resident.id}>
+                    {resident.name} (Room {resident.room_number})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
@@ -288,6 +311,7 @@ export function UploadDocumentDialog({ onSuccess }: { onSuccess?: () => void }) 
             </Button>
           </div>
         </form>
+        )}
       </DialogContent>
     </Dialog>
   );

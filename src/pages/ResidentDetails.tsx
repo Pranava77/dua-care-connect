@@ -19,7 +19,7 @@ import {
   Shield,
   Pill
 } from "lucide-react";
-import { mockApi } from "@/lib/mockData";
+import { useResidentProfile } from "@/hooks/queries/residentProfile";
 import { toast } from "sonner";
 import { EditResidentDialog } from "@/components/EditResidentDialog";
 import { PermissionGate } from "@/components/PermissionGate";
@@ -27,49 +27,17 @@ import { PermissionGate } from "@/components/PermissionGate";
 export default function ResidentDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [resident, setResident] = useState<any>(null);
-  const [medicalRecords, setMedicalRecords] = useState<any[]>([]);
-  const [prescriptions, setPrescriptions] = useState<any[]>([]);
-  const [invoices, setInvoices] = useState<any[]>([]);
-  const [documents, setDocuments] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const profile = useResidentProfile(id);
+  const { resident, medicalRecords, prescriptions, invoices, documents, isLoading: loading, notFound } = profile;
+  const fetchResidentData = profile.refetch;
   const [editingResident, setEditingResident] = useState<any>(null);
 
   useEffect(() => {
-    if (id) {
-      fetchResidentData();
+    if (notFound) {
+      toast.error("Resident not found");
+      navigate("/residents");
     }
-  }, [id]);
-
-  const fetchResidentData = async () => {
-    try {
-      const [residentRes, medicalRes, prescriptionRes, invoiceRes, documentRes] = await Promise.all([
-        mockApi.getResidents(),
-        mockApi.getMedicalRecords(),
-        mockApi.getPrescriptions(),
-        mockApi.getInvoices(),
-        mockApi.getDocuments(),
-      ]);
-
-      const foundResident = residentRes.data?.find((r: any) => r.id === id);
-      if (foundResident) {
-        setResident(foundResident);
-        
-        // Get related data
-        setMedicalRecords(medicalRes.data?.filter((m: any) => m.resident_id === id) || []);
-        setPrescriptions(prescriptionRes.data?.filter((p: any) => p.resident_id === id) || []);
-        setInvoices(invoiceRes.data?.filter((i: any) => i.resident_id === id) || []);
-        setDocuments(documentRes.data?.filter((d: any) => d.resident_id === id) || []);
-      } else {
-        toast.error("Resident not found");
-        navigate("/residents");
-      }
-    } catch (error: any) {
-      toast.error("Failed to load resident data: " + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [notFound, navigate]);
 
   const calculateAge = (dateOfBirth: string) => {
     const today = new Date();
@@ -211,7 +179,7 @@ export default function ResidentDetails() {
                             {record.doctor} • {new Date(record.last_check_date).toLocaleDateString()}
                           </p>
                         </div>
-                        <Badge variant="outline">{record.category || 'Routine'}</Badge>
+                        <Badge variant="outline">{record.doctor}</Badge>
                       </div>
                       <p className="text-sm text-muted-foreground mt-2">{record.treatment}</p>
                       {record.notes && (

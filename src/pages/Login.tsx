@@ -4,7 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { mockApi } from "@/lib/mockData";
 import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,7 +23,7 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-  const { refreshSession, user, loading } = useAuth();
+  const { signIn, signUp, user, loading } = useAuth();
 
   // Navigate to dashboard when user becomes authenticated
   useEffect(() => {
@@ -42,30 +41,14 @@ const Login = () => {
     try {
       const validated = authSchema.parse({ email, password });
       
-      const { data, error } = await mockApi.signIn(validated.email, validated.password);
-
-      if (error) throw error;
-
-      // Store session in localStorage
-      localStorage.setItem('mock-session', JSON.stringify(data.session));
-
-      // Refresh the auth context to update user state
-      await refreshSession();
+      await signIn(validated.email, validated.password);
 
       toast({
         title: "Login successful",
         description: "Welcome back to SilverSync",
       });
       
-      // Force a small delay to ensure state updates, then navigate as fallback
-      // The useEffect will handle navigation if state propagates, but this ensures it happens
-      setTimeout(() => {
-        // Double-check user state before navigating
-        const currentSession = localStorage.getItem('mock-session');
-        if (currentSession) {
-          navigate("/dashboard", { replace: true });
-        }
-      }, 100);
+      navigate("/dashboard", { replace: true });
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast({
@@ -92,30 +75,14 @@ const Login = () => {
     try {
       const validated = authSchema.parse({ email, password, fullName });
       
-      const { data, error } = await mockApi.signUp(validated.email, validated.password);
-
-      if (error) throw error;
-
-      // Store session in localStorage
-      localStorage.setItem('mock-session', JSON.stringify(data.session));
-
-      // Refresh the auth context to update user state
-      await refreshSession();
+      await signUp(validated.email, validated.password, validated.fullName);
 
       toast({
         title: "Account created",
         description: "Welcome to SilverSync",
       });
       
-      // Force a small delay to ensure state updates, then navigate as fallback
-      // The useEffect will handle navigation if state propagates, but this ensures it happens
-      setTimeout(() => {
-        // Double-check user state before navigating
-        const currentSession = localStorage.getItem('mock-session');
-        if (currentSession) {
-          navigate("/dashboard", { replace: true });
-        }
-      }, 100);
+      navigate("/dashboard", { replace: true });
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast({
@@ -307,9 +274,9 @@ const Login = () => {
             variant="outline"
             className="w-full max-w-md"
             size="lg"
-            onClick={() => navigate("/documents")}
+            onClick={() => navigate("/about")}
           >
-            Documents
+            About SilverSync
           </Button>
         </div>
 

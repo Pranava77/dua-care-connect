@@ -3,10 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Phone, Mail, MapPin, DollarSign, User, Clock } from "lucide-react";
-import { MockStaff } from "@/lib/mockData";
+import type { Staff } from "@/lib/types";
 
 interface StaffProfileDialogProps {
-  staff: MockStaff;
+  staff: Staff;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }

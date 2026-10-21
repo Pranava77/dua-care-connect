@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { mockApi, MockStaff } from "@/lib/mockData";
+import { useUpdateStaff } from "@/hooks/queries/staff";
+import type { Staff } from "@/lib/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
 
@@ -21,7 +22,7 @@ const staffSchema = z.object({
 });
 
 interface EditStaffDialogProps {
-  staff: MockStaff;
+  staff: Staff;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
@@ -30,16 +31,17 @@ interface EditStaffDialogProps {
 export function EditStaffDialog({ staff, open, onOpenChange, onSuccess }: EditStaffDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const updateStaff = useUpdateStaff();
   const { user } = useAuth();
   
-  const [formData, setFormData] = useState<Omit<MockStaff, 'id' | 'created_at'>>({
+  const [formData, setFormData] = useState<Omit<Staff, 'id' | 'created_at' | 'salary'> & { salary: string }>({
     name: staff.name,
     email: staff.email,
     phone: staff.phone,
     position: staff.position,
     department: staff.department,
     hire_date: staff.hire_date,
-    salary: staff.salary,
+    salary: String(staff.salary ?? ""),
     status: staff.status,
   });
 
@@ -51,18 +53,16 @@ export function EditStaffDialog({ staff, open, onOpenChange, onSuccess }: EditSt
     try {
       const validated = staffSchema.parse(formData);
 
-      const { error } = await mockApi.updateStaff(staff.id, {
+      await updateStaff.mutateAsync({ id: staff.id, data: {
         name: validated.name,
         email: validated.email,
         phone: validated.phone,
         position: validated.position,
         department: validated.department,
         hire_date: validated.hire_date,
-        salary: validated.salary,
+        salary: Number(validated.salary),
         status: validated.status,
-      });
-
-      if (error) throw error;
+      } });
 
       toast({
         title: "Success",

@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { mockApi } from "@/lib/mockData";
+import { useInvoices, useRecordPayment } from "@/hooks/queries/accounting";
 import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
 import { CreditCard } from "lucide-react";
@@ -23,8 +23,11 @@ const paymentSchema = z.object({
 export function RecordPaymentDialog({ onSuccess }: { onSuccess?: () => void }) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [invoices, setInvoices] = useState<any[]>([]);
+  const { data: allInvoices = [] } = useInvoices(open);
+  // Only unpaid invoices can take a payment
+  const invoices = allInvoices.filter((invoice) => invoice.status === 'Pending' || invoice.status === 'Overdue');
   const { toast } = useToast();
+  const recordPayment = useRecordPayment();
   const { user } = useAuth();
   
   const [formData, setFormData] = useState<{
@@ -45,23 +48,10 @@ export function RecordPaymentDialog({ onSuccess }: { onSuccess?: () => void }) {
 
   useEffect(() => {
     if (open) {
-      fetchInvoices();
       setFormData(prev => ({ ...prev, payment_date: new Date().toISOString().split('T')[0] }));
     }
   }, [open]);
 
-  const fetchInvoices = async () => {
-    try {
-      const { data } = await mockApi.getInvoices();
-      // Only show unpaid invoices
-      const unpaidInvoices = data?.filter(invoice => 
-        invoice.status === 'Pending' || invoice.status === 'Overdue'
-      ) || [];
-      setInvoices(unpaidInvoices);
-    } catch (error) {
-      console.error("Error fetching invoices:", error);
-    }
-  };
 
   const selectedInvoice = invoices.find(inv => inv.id === formData.invoice_id);
 
@@ -80,7 +70,7 @@ export function RecordPaymentDialog({ onSuccess }: { onSuccess?: () => void }) {
         notes: formData.notes || undefined,
       });
 
-      const { error } = await mockApi.recordPayment({
+      await recordPayment.mutateAsync({
         invoice_id: validated.invoice_id,
         amount: validated.amount,
         payment_method: validated.payment_method,
@@ -89,8 +79,6 @@ export function RecordPaymentDialog({ onSuccess }: { onSuccess?: () => void }) {
         processed_by: user.name,
         notes: validated.notes,
       });
-
-      if (error) throw error;
 
       toast({
         title: "Success",

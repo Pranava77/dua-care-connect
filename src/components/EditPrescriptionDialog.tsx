@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { mockApi } from "@/lib/mockData";
+import { useResidents } from "@/hooks/queries/residents";
+import { useUpdatePrescription } from "@/hooks/queries/medical";
 import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
 
@@ -27,8 +28,9 @@ interface EditPrescriptionDialogProps {
 
 export function EditPrescriptionDialog({ prescription, open, onOpenChange, onSuccess }: EditPrescriptionDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [residents, setResidents] = useState<any[]>([]);
+  const { data: residents = [] } = useResidents(open);
   const { toast } = useToast();
+  const updatePrescription = useUpdatePrescription();
   const { user } = useAuth();
   
   const [formData, setFormData] = useState<{
@@ -57,18 +59,9 @@ export function EditPrescriptionDialog({ prescription, open, onOpenChange, onSuc
         refill_date: prescription.refill_date || "",
         prescribing_doctor: prescription.prescribing_doctor || "",
       });
-      fetchResidents();
     }
   }, [prescription, open]);
 
-  const fetchResidents = async () => {
-    try {
-      const { data } = await mockApi.getResidents();
-      setResidents(data || []);
-    } catch (error) {
-      console.error("Error fetching residents:", error);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,16 +71,14 @@ export function EditPrescriptionDialog({ prescription, open, onOpenChange, onSuc
     try {
       const validated = prescriptionSchema.parse(formData);
 
-      const { error } = await mockApi.updatePrescription(prescription.id, {
+      await updatePrescription.mutateAsync({ id: prescription.id, data: {
         resident_id: validated.resident_id,
         medication: validated.medication,
         dosage: validated.dosage,
         frequency: validated.frequency,
         refill_date: validated.refill_date,
         prescribing_doctor: validated.prescribing_doctor,
-      });
-
-      if (error) throw error;
+      } });
 
       toast({
         title: "Success",

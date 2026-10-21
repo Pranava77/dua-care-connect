@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,42 +31,32 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { mockApi } from "@/lib/mockData";
+import { useDeleteStaff, useLeaveRequests, useSetLeaveStatus, useStaff } from "@/hooks/queries/staff";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
 export default function HR() {
-  const [staffMembers, setStaffMembers] = useState<any[]>([]);
-  const [leaveRequests, setLeaveRequests] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [staffToDelete, setStaffToDelete] = useState<any>(null);
   const [editingStaff, setEditingStaff] = useState<any>(null);
   const [viewingStaff, setViewingStaff] = useState<any>(null);
   const { user } = useAuth();
 
-  useEffect(() => {
-    if (user) {
-      fetchData();
-    }
-  }, [user]);
+  const staffQuery = useStaff();
+  const leaveQuery = useLeaveRequests();
+  const staffMembers: any[] = staffQuery.data ?? [];
+  const leaveRequests = leaveQuery.data ?? [];
+  const loading = staffQuery.isLoading || leaveQuery.isLoading;
+  const fetchData = () => Promise.all([staffQuery.refetch(), leaveQuery.refetch()]);
+  const deleteStaff = useDeleteStaff();
+  const setLeaveStatus = useSetLeaveStatus();
 
-  const fetchData = async () => {
+  const decideLeave = async (id: string, status: "approved" | "rejected") => {
     try {
-      const [staffResult, leaveResult] = await Promise.all([
-        mockApi.getStaff(),
-        mockApi.getLeaveRequests()
-      ]);
-
-      if (staffResult.error) throw staffResult.error;
-      if (leaveResult.error) throw leaveResult.error;
-
-      setStaffMembers(staffResult.data || []);
-      setLeaveRequests(leaveResult.data || []);
+      await setLeaveStatus.mutateAsync({ id, status });
+      toast.success(`Leave request ${status}`);
     } catch (error: any) {
-      toast.error("Failed to load data: " + error.message);
-    } finally {
-      setLoading(false);
+      toast.error("Failed to update leave request: " + error.message);
     }
   };
 
@@ -74,13 +64,11 @@ export default function HR() {
     if (!staffToDelete) return;
     
     try {
-      const { error } = await mockApi.deleteStaff(staffToDelete.id);
-      if (error) throw error;
-      
+      await deleteStaff.mutateAsync(staffToDelete.id);
+
       toast.success("Staff member deleted successfully");
       setDeleteDialogOpen(false);
       setStaffToDelete(null);
-      fetchData();
     } catch (error: any) {
       toast.error("Failed to delete staff member: " + error.message);
     }
@@ -91,8 +79,8 @@ export default function HR() {
     setDeleteDialogOpen(true);
   };
 
-  const presentCount = staffMembers.filter(s => s.status === 'present').length;
-  const onLeaveCount = staffMembers.filter(s => s.status === 'leave').length;
+  const presentCount = staffMembers.filter(s => s.status === 'active').length;
+  const onLeaveCount = staffMembers.filter(s => s.status === 'on_leave').length;
   const totalStaff = staffMembers.length;
 
   const hrStats = [
@@ -272,7 +260,7 @@ export default function HR() {
                 ) : leaveRequests.length === 0 ? (
                   <div className="text-center text-sm text-muted-foreground">No upcoming leave</div>
                 ) : (
-                  leaveRequests.slice(0, 3).map((leave) => (
+                  [...leaveRequests].sort((a, b) => Number(b.status === "pending") - Number(a.status === "pending")).slice(0, 3).map((leave) => (
                     <div key={leave.id} className="border border-border rounded-lg p-3">
                       <p className="font-medium text-sm text-foreground">{leave.staff?.name}</p>
                       <p className="text-xs text-muted-foreground mt-1">{leave.reason}</p>
@@ -293,6 +281,20 @@ export default function HR() {
                           {leave.status.charAt(0).toUpperCase() + leave.status.slice(1)}
                         </Badge>
                       </div>
+                      {leave.status === "pending" && (
+                        <PermissionGate permission="hr:update">
+                          <div className="flex gap-2 mt-2">
+                            <Button size="sm" variant="outline" className="h-7 flex-1"
+                              disabled={setLeaveStatus.isPending} onClick={() => decideLeave(leave.id, "approved")}>
+                              Approve
+                            </Button>
+                            <Button size="sm" variant="ghost" className="h-7 flex-1 text-destructive"
+                              disabled={setLeaveStatus.isPending} onClick={() => decideLeave(leave.id, "rejected")}>
+                              Reject
+                            </Button>
+                          </div>
+                        </PermissionGate>
+                      )}
                     </div>
                   ))
                 )}

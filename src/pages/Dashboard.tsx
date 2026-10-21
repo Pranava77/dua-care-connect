@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Heart, AlertCircle, FileText, TrendingUp, Calendar, Activity } from "lucide-react";
-import { mockApi } from "@/lib/mockData";
+import { useDashboardSummary } from "@/hooks/queries/reports";
+import { AiAlertsCard } from "@/features/ai-reports/AiAlertsCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { 
   LineChart, 
@@ -22,14 +23,15 @@ import {
 } from "recharts";
 
 export default function Dashboard() {
-  const [stats, setStats] = useState({
-    residents: 0,
-    medicalCases: 0,
-    prescriptions: 0,
-    staff: 0
-  });
-  const [recentResidents, setRecentResidents] = useState<any[]>([]);
-  const [recentPrescriptions, setRecentPrescriptions] = useState<any[]>([]);
+  const { data: summary } = useDashboardSummary();
+  const stats = {
+    residents: summary?.residents ?? 0,
+    medicalCases: summary?.medicalCases ?? 0,
+    prescriptions: summary?.prescriptions ?? 0,
+    staff: summary?.staff ?? 0,
+  };
+  const recentResidents = summary?.recentResidents ?? [];
+  const recentPrescriptions = summary?.recentPrescriptions ?? [];
   const [chartData, setChartData] = useState({
     occupancyTrend: [],
     revenueTrend: [],
@@ -46,25 +48,6 @@ export default function Dashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      const [residentsResult, medicalResult, prescriptionsResult, staffResult] = await Promise.all([
-        mockApi.getResidents(),
-        mockApi.getMedicalRecords(),
-        mockApi.getRecentPrescriptions(),
-        mockApi.getStaff()
-      ]);
-
-      setStats({
-        residents: residentsResult.data?.length || 0,
-        medicalCases: medicalResult.data?.length || 0,
-        prescriptions: prescriptionsResult.data?.length || 0,
-        staff: staffResult.data?.length || 0
-      });
-
-      const recentResidentsData = await mockApi.getRecentResidents();
-
-      setRecentResidents(recentResidentsData.data || []);
-      setRecentPrescriptions(prescriptionsResult.data || []);
-
       // Generate mock chart data
       setChartData({
         occupancyTrend: [
@@ -167,6 +150,8 @@ export default function Dashboard() {
           </Card>
         ))}
       </div>
+
+      <AiAlertsCard />
 
       {/* Charts Section */}
       <div className="grid gap-6 md:grid-cols-2">
@@ -494,7 +479,7 @@ export default function Dashboard() {
                         </p>
                       </div>
                     </div>
-                    <span className="text-xs bg-warning text-warning-foreground px-3 py-1 rounded-full font-medium">{prescription.status}</span>
+                    <span className="text-xs bg-warning text-warning-foreground px-3 py-1 rounded-full font-medium">Refill {new Date(prescription.refill_date).toLocaleDateString()}</span>
                   </div>
                 ))
               )}

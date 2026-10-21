@@ -5,7 +5,7 @@ import { Users, Heart, DollarSign, UserCog, BarChart3, FileText, CheckCircle2, C
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
 
-export default function Documents() {
+export default function About() {
   const { user } = useAuth();
 
   const features = [

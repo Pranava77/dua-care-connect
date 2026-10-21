@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { mockApi } from "@/lib/mockData";
+import { useCreateStaff } from "@/hooks/queries/staff";
 import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
 import { Plus } from "lucide-react";
@@ -23,6 +23,7 @@ export function AddStaffDialog({ onSuccess }: { onSuccess?: () => void }) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const createStaff = useCreateStaff();
   const { user } = useAuth();
   
   const [formData, setFormData] = useState<{
@@ -49,7 +50,7 @@ export function AddStaffDialog({ onSuccess }: { onSuccess?: () => void }) {
     try {
       const validated = staffSchema.parse(formData);
 
-      const { error } = await mockApi.insertStaff({
+      await createStaff.mutateAsync({
         name: validated.name,
         position: validated.position,
         department: validated.department,
@@ -57,8 +58,6 @@ export function AddStaffDialog({ onSuccess }: { onSuccess?: () => void }) {
         phone: validated.phone,
         hire_date: validated.hire_date,
       });
-
-      if (error) throw error;
 
       toast({
         title: "Success",

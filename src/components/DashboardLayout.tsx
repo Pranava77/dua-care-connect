@@ -1,10 +1,12 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { GlobalSearch } from "./GlobalSearch";
-import { Bell, User, LogOut } from "lucide-react";
+import { Bell, User, LogOut, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { AssistantProvider, useAssistant } from "@/features/assistant/AssistantProvider";
+import { AssistantPanel } from "@/features/assistant/AssistantPanel";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +21,25 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
+  return (
+    <AssistantProvider>
+      <LayoutShell>{children}</LayoutShell>
+      <AssistantPanel />
+    </AssistantProvider>
+  );
+}
+
+function AssistantButton() {
+  const { setOpen } = useAssistant();
+  return (
+    <Button variant="outline" size="sm" className="gap-2" onClick={() => setOpen(true)}>
+      <Sparkles className="h-4 w-4 text-primary" />
+      <span className="hidden md:inline">Ask AI</span>
+    </Button>
+  );
+}
+
+function LayoutShell({ children }: DashboardLayoutProps) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -40,6 +61,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <GlobalSearch onResultClick={handleSearchResultClick} />
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
+              <AssistantButton />
               <Button variant="ghost" size="icon">
                 <Bell className="h-5 w-5" />
               </Button>

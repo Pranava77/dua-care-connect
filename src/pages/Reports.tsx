@@ -1,36 +1,28 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Download, TrendingUp, Users, DollarSign, FileText, Calendar, Clock } from "lucide-react";
-import { mockApi } from "@/lib/mockData";
+import { useGenerateReport, useReports } from "@/hooks/queries/reports";
+import { keys } from "@/hooks/queries/keys";
+import { residentsApi } from "@/lib/api/residents";
+import { accountingApi } from "@/lib/api/accounting";
+import { medicalApi } from "@/lib/api/medical";
+import { reportsApi } from "@/lib/api/reports";
+import { AiReportDrafts } from "@/features/ai-reports/AiReportDrafts";
+import { PermissionGate } from "@/components/PermissionGate";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { generateResidentReport, generateFinancialReport, generateMedicalReport } from "@/lib/pdfGenerator";
 
 export default function Reports() {
-  const [reports, setReports] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [generatingReport, setGeneratingReport] = useState<string | null>(null);
   const { user } = useAuth();
 
-  useEffect(() => {
-    if (user) {
-      fetchReports();
-    }
-  }, [user]);
-
-  const fetchReports = async () => {
-    try {
-      const { data, error } = await mockApi.getReports();
-      if (error) throw error;
-      setReports(data || []);
-    } catch (error: any) {
-      toast.error("Failed to load reports: " + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: reports = [], isLoading: loading } = useReports();
+  const generateReport = useGenerateReport();
+  const queryClient = useQueryClient();
 
   const handleGenerateReport = async (reportId: string) => {
     setGeneratingReport(reportId);
@@ -41,28 +33,26 @@ export default function Reports() {
       // Generate actual PDF based on report type
       switch (report.type) {
         case 'residents':
-          const { data: residentsData } = await mockApi.getResidents();
+          const residentsData = await queryClient.fetchQuery({ queryKey: keys.residents, queryFn: () => residentsApi.list() });
           await generateResidentReport(residentsData || [], user?.name || 'System');
           break;
         case 'financial':
-          const { data: invoicesData } = await mockApi.getInvoices();
+          const invoicesData = await queryClient.fetchQuery({ queryKey: keys.invoices, queryFn: () => accountingApi.listInvoices() });
           await generateFinancialReport(invoicesData || [], user?.name || 'System');
           break;
         case 'medical':
-          const { data: medicalData } = await mockApi.getMedicalRecords();
-          const { data: prescriptionsData } = await mockApi.getPrescriptions();
+          const medicalData = await queryClient.fetchQuery({ queryKey: keys.medicalRecords, queryFn: () => medicalApi.listRecords() });
+          const prescriptionsData = await queryClient.fetchQuery({ queryKey: keys.prescriptions, queryFn: () => medicalApi.listPrescriptions() });
           await generateMedicalReport(medicalData || [], prescriptionsData || [], user?.name || 'System');
           break;
         default:
           // Generic report generation
-          const { data, error } = await mockApi.generateReport(reportId);
-          if (error) throw error;
-          toast.success("Report generated successfully");
           break;
       }
+      // Records the generation server-side (updates last_generated)
+      await generateReport.mutateAsync(reportId);
 
       toast.success(`${report.name} generated and downloaded successfully`);
-      fetchReports(); // Refresh the list to show updated last_generated time
     } catch (error: any) {
       toast.error("Failed to generate report: " + error.message);
     } finally {
@@ -72,10 +62,8 @@ export default function Reports() {
 
   const handleExportAll = async () => {
     try {
-      const { data, error } = await mockApi.exportData('reports');
-      if (error) throw error;
-      toast.success("Export started. Download will begin shortly.");
-      console.log("Export URL:", data.download_url);
+      await reportsApi.exportCsv('reports');
+      toast.success("Reports exported");
     } catch (error: any) {
       toast.error("Failed to export reports: " + error.message);
     }
@@ -163,6 +151,10 @@ export default function Reports() {
           </Card>
         ))}
       </div>
+
+      <PermissionGate permission="reports:generate">
+        <AiReportDrafts />
+      </PermissionGate>
 
       <div className="grid gap-4 md:grid-cols-2">
         {reportCategories.map((category) => (

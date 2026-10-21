@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { mockApi } from "@/lib/mockData";
+import { useCreateResident } from "@/hooks/queries/residents";
 import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
 import { Plus } from "lucide-react";
@@ -22,6 +22,7 @@ export function AddResidentDialog({ onSuccess }: { onSuccess?: () => void }) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const createResident = useCreateResident();
   const { user } = useAuth();
   
   const [formData, setFormData] = useState<{
@@ -46,15 +47,13 @@ export function AddResidentDialog({ onSuccess }: { onSuccess?: () => void }) {
     try {
       const validated = residentSchema.parse(formData);
 
-      const { error } = await mockApi.insertResident({
+      await createResident.mutateAsync({
         name: validated.name,
         room_number: validated.room_number,
         date_of_birth: validated.date_of_birth,
         emergency_contact: validated.emergency_contact,
         medical_conditions: validated.medical_conditions || [],
       });
-
-      if (error) throw error;
 
       toast({
         title: "Success",

@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { mockApi } from "@/lib/mockData";
+import { useResidents } from "@/hooks/queries/residents";
+import { useUpdateMedicalRecord } from "@/hooks/queries/medical";
 import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
 
@@ -28,8 +29,9 @@ interface EditMedicalRecordDialogProps {
 
 export function EditMedicalRecordDialog({ record, open, onOpenChange, onSuccess }: EditMedicalRecordDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [residents, setResidents] = useState<any[]>([]);
+  const { data: residents = [] } = useResidents(open);
   const { toast } = useToast();
+  const updateRecord = useUpdateMedicalRecord();
   const { user } = useAuth();
   
   const [formData, setFormData] = useState<{
@@ -58,18 +60,9 @@ export function EditMedicalRecordDialog({ record, open, onOpenChange, onSuccess 
         doctor: record.doctor || "",
         notes: record.notes || "",
       });
-      fetchResidents();
     }
   }, [record, open]);
 
-  const fetchResidents = async () => {
-    try {
-      const { data } = await mockApi.getResidents();
-      setResidents(data || []);
-    } catch (error) {
-      console.error("Error fetching residents:", error);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,16 +72,14 @@ export function EditMedicalRecordDialog({ record, open, onOpenChange, onSuccess 
     try {
       const validated = medicalRecordSchema.parse(formData);
 
-      const { error } = await mockApi.updateMedicalRecord(record.id, {
+      await updateRecord.mutateAsync({ id: record.id, data: {
         resident_id: validated.resident_id,
         diagnosis: validated.diagnosis,
         treatment: validated.treatment,
         last_check_date: validated.last_check_date,
         doctor: validated.doctor,
         notes: validated.notes || "",
-      });
-
-      if (error) throw error;
+      } });
 
       toast({
         title: "Success",
