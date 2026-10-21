@@ -22,7 +22,8 @@ from app.ai.ports import EmbeddingProvider, LLMProvider, VectorStore
 from app.ai.reports.service import ReportsService
 from app.ai.search.service import SearchService
 from app.core.config import Settings
-from app.core.db import Base, make_engine, make_session_factory
+from app import migrate
+from app.core.db import make_engine, make_session_factory
 from app.core.events import EventBus
 from app.core.storage import FileStorage
 from app.domain.accounting.service import AccountingService
@@ -118,7 +119,8 @@ class Container:
         register_index_handlers(self.events, self.indexer, self.storage)
 
     def init_db(self) -> None:
-        Base.metadata.create_all(self.engine)
+        """Bring the database schema up to date with Alembic migrations."""
+        migrate.upgrade(self.engine)
 
     # ---- AI provider configuration ---------------------------------------------------
 
