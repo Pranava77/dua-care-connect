@@ -4,6 +4,8 @@
 
 ![The dashboard: the house drawn as two floors of coloured resident doors](docs/screenshots/dashboard.png)
 
+**Docs:** [Architecture](ARCHITECTURE.md) · [Design](DESIGN.md)
+
 Dementia-friendly care homes paint each resident's front door its own colour, with their name and room number, so they can find home. SilverSync uses the same idea: **every resident has their own door**, and that door appears wherever the resident does. The dashboard draws the house as corridors of doors. A lit nurse-call light marks rooms that need someone. Pointing at a door swings it open to show what that room needs.
 
 | | |
@@ -130,30 +132,15 @@ backend/
   app/api/routers/         HTTP endpoints
   app/scripts/             seed and reindex
   tests/                   unit and integration tests (scripted fake LLM, no key needed)
+ARCHITECTURE.md            how the system fits together, with diagrams
 DESIGN.md                  design concept, palette, type, motion rules, decisions and QA log
 ```
 
-## Backend architecture
+## Architecture
 
-```
-api (FastAPI routers: HTTP only)
- ├─► domain/<module>   service → repository → SQLAlchemy models   (no AI, no SDKs)
- │      └─ publishes EntityChanged / DocumentFileStored events (core/events.py)
- └─► ai/                search · docintel · reports · agent       (depends on ports only)
-        ├─ ai/ports.py    LLMProvider · EmbeddingProvider · VectorStore · AgentStore
-        ├─ ai/gateway.py  DomainGateway (read/write domain data through services)
-        └─ ai/indexing    subscribes to domain events → keeps ChromaDB in sync
-infra/      Gemini, ChromaDB, local file storage and SQL agent-store adapters
-adapters/   DomainGateway implementation over the domain services
-container.py  composition root, the only place that wires concrete classes
-```
+The full write-up, with diagrams, is in **[ARCHITECTURE.md](ARCHITECTURE.md)**. It covers the system overview, backend layers, request lifecycle, access control, how the vector index stays in sync, the agent loop, document review, AI provider configuration, the data model, the frontend, the API surface and deployment.
 
-`backend/.importlinter` enforces these layers. Run `uv run lint-imports` to check them:
-- `core` depends on nothing else in the app.
-- `domain` never imports AI, infrastructure, FastAPI, ChromaDB or Gemini.
-- `ai` uses ports and DTOs only.
-- `infra` never reaches into domain or HTTP code.
-- Routers never touch the database directly.
+In short: FastAPI routers call domain services (residents, medical, accounting and so on), which know nothing about AI and publish an event whenever data changes. The AI layer (search, agent, document review, reports) listens to those events to keep ChromaDB in sync. It reads and changes data only through the domain services, and reaches Gemini and ChromaDB only through small interfaces. `backend/.importlinter` enforces these boundaries (`uv run lint-imports`).
 
 ### Access control and safety
 
