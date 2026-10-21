@@ -15,7 +15,7 @@ from pydantic import TypeAdapter
 
 from app.container import Container
 from app.core.config import get_settings
-from app.core.db import Base
+from app.migrate import drop_everything
 from app.core.security import hash_password
 from app.domain.accounting.models import Invoice, Payment
 from app.domain.documents.models import Document
@@ -50,7 +50,7 @@ def _coerce(row: dict, shift: timedelta = timedelta(0)) -> dict:
 def seed(container: Container, *, reset: bool = False) -> None:
     settings = container.settings
     if reset:
-        Base.metadata.drop_all(container.engine)
+        drop_everything(container.engine)
         container.indexer.reset()
         shutil.rmtree(settings.storage_dir, ignore_errors=True)
         settings.storage_dir.mkdir(parents=True, exist_ok=True)

@@ -288,7 +288,7 @@ erDiagram
 
 - **Other tables:** `users` (email, bcrypt hash, role), `reports`, `app_settings` (key/value; secrets encrypted), `agent_actions` (pending, executed, rejected or failed) and `agent_audit` (one row per tool call).
 - **Cascades:** child rows cascade when a resident or staff member is deleted. Document files are removed explicitly first.
-- **Schema creation:** tables are created with `Base.metadata.create_all`. There are no migrations yet.
+- **Migrations:** the schema is managed by Alembic (`backend/migrations/`). The API runs `alembic upgrade head` on startup through `app/migrate.py`. A database created before migrations existed is stamped at the baseline revision `0001_initial` first, so its data is kept. `app/model_registry.py` imports every model so autogenerate sees the whole schema. On SQLite, migrations use batch mode, which rebuilds a table to change it.
 
 ## Frontend
 

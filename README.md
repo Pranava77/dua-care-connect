@@ -131,6 +131,7 @@ backend/
   app/infra/               Gemini, ChromaDB, file storage and SQL adapters
   app/api/routers/         HTTP endpoints
   app/scripts/             seed and reindex
+  migrations/              Alembic migrations (applied on startup)
   tests/                   unit and integration tests (scripted fake LLM, no key needed)
 ARCHITECTURE.md            how the system fits together, with diagrams
 DESIGN.md                  design concept, palette, type, motion rules, decisions and QA log
@@ -157,11 +158,27 @@ In short: FastAPI routers call domain services (residents, medical, accounting a
 - **Motion:** doors swing on their hinge, and buttons fill from the hinge side. Pages cross-fade, and clicking a door turns it into the door at the top of the resident's page.
 - **At rest:** only the call lights move. Under reduced motion, nothing moves and everything stays visible.
 
+## Database migrations
+
+The schema is managed with [Alembic](https://alembic.sqlalchemy.org/). The API applies pending migrations when it starts, and so do the seed and reindex scripts.
+
+To change the schema, edit the SQLAlchemy models, then from `backend/`:
+
+```bash
+uv run alembic revision --autogenerate -m "add room capacity"   # writes migrations/versions/<rev>_<slug>.py
+uv run alembic upgrade head      # apply (the API also does this on startup)
+uv run alembic check             # fails if the models and migrations disagree
+uv run alembic downgrade -1      # undo the last migration
+```
+
+Read each generated file before committing it; autogenerate can't detect renames, for example. A database created before migrations existed is adopted automatically: it's stamped at the baseline revision and keeps its data.
+
 ## Testing
 
 ```bash
 cd backend && uv run pytest          # 49 tests; a scripted fake LLM, so no API key needed
 cd backend && uv run lint-imports    # layering contracts
+cd backend && uv run alembic check   # models and migrations agree
 npx tsc --noEmit -p tsconfig.app.json
 npm run build
 ```
