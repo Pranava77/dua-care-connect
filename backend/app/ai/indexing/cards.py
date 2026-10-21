@@ -47,7 +47,7 @@ def _medical_record(d: dict) -> tuple[str, dict]:
     name = d["residents"]["name"]
     text = (f"Medical record for {name}. Diagnosis: {d['diagnosis']}. Treatment: {d['treatment']}. "
             f"Last checked {d['last_check_date']} by {d['doctor']}. Notes: {d.get('notes') or 'none'}.")
-    return text, _meta("medical_record", d["id"], "medical", f"{d['diagnosis']} — {name}",
+    return text, _meta("medical_record", d["id"], "medical", f"{d['diagnosis']}, {name}",
                        f"/residents/{d['resident_id']}", d["resident_id"])
 
 
@@ -55,7 +55,7 @@ def _prescription(d: dict) -> tuple[str, dict]:
     name = d["residents"]["name"]
     text = (f"Prescription for {name}: {d['medication']} {d['dosage']}, {d['frequency']}. "
             f"Refill due {d['refill_date']}. Prescribed by {d['prescribing_doctor']}.")
-    return text, _meta("prescription", d["id"], "medical", f"{d['medication']} — {name}",
+    return text, _meta("prescription", d["id"], "medical", f"{d['medication']}, {name}",
                        f"/residents/{d['resident_id']}", d["resident_id"])
 
 
@@ -63,7 +63,7 @@ def _invoice(d: dict) -> tuple[str, dict]:
     lines = "; ".join(f"{s['name']} {s['amount']}" for s in d.get("services") or []) or "none listed"
     text = (f"Invoice {d['invoice_number']} for {d['resident_name']}: {d['amount']} {d['currency']}, "
             f"status {d['status']}, due {d['due_date']}. Services: {lines}. Notes: {d.get('notes') or 'none'}.")
-    return text, _meta("invoice", d["id"], "accounting", f"{d['invoice_number']} — {d['resident_name']}",
+    return text, _meta("invoice", d["id"], "accounting", f"{d['invoice_number']}, {d['resident_name']}",
                        "/accounting", d["resident_id"])
 
 

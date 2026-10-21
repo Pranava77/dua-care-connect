@@ -10,8 +10,8 @@ def _events(response) -> list[dict]:
 
 
 def test_chat_uses_tools_and_streams_answer(client, as_role, llm):
-    llm.turns = [[call("list_prescriptions_due", within_days=7)],
-                 [say("Three refills are overdue: Metformin, Lisinopril and Donepezil.")]]
+    llm.turns = [[call("list_prescriptions_due", within_days=30)],
+                 [say("Three refills are due this month: Lisinopril, Metformin and Donepezil.")]]
     res = client.post("/api/agent/chat", headers=as_role("doctor"), json={"message": "Which refills are due?"})
     events = _events(res)
     kinds = [e["type"] for e in events]
@@ -38,9 +38,9 @@ def test_receptionist_agent_cannot_reach_medical_tools(client, as_role, llm):
 
 def test_write_actions_need_confirmation(client, as_role, llm):
     acct = as_role("accountant")
-    llm.turns = [[call("record_payment", invoice_id="3", payment_method="NEFT")],
+    llm.turns = [[call("record_payment", invoice_id="3", payment_method="BACS")],
                  [say("I've prepared the payment; please confirm.")]]
-    events = _events(client.post("/api/agent/chat", headers=acct, json={"message": "Ethel paid INV-003 by NEFT"}))
+    events = _events(client.post("/api/agent/chat", headers=acct, json={"message": "Ethel paid INV-003 by BACS"}))
     action = next(e for e in events if e["type"] == "proposed_action")["data"]
     assert action["status"] == "pending" and "INV-003" in action["summary"]
 

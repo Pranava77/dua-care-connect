@@ -18,7 +18,7 @@ def list_prescriptions_due(ctx: ToolContext, args: PrescriptionsDueArgs) -> Tool
     due = ctx.gateway.prescriptions_due(args.within_days)
     return ToolResult(
         content={"today": date.today().isoformat(), "prescriptions_due": dump(due)},
-        citations=[cite(f"{d.prescription.medication} — {d.prescription.residents.name}",
+        citations=[cite(f"{d.prescription.medication}, {d.prescription.residents.name}",
                         f"/residents/{d.prescription.resident_id}", "prescription", d.prescription.id) for d in due[:5]],
     )
 
@@ -30,7 +30,7 @@ class MedicalRecordsArgs(BaseModel):
 def list_medical_records(ctx: ToolContext, args: MedicalRecordsArgs) -> ToolResult:
     records = ctx.gateway.list_medical_records(args.resident_id)
     return ToolResult(content={"medical_records": dump(records)},
-                      citations=[cite(f"{r.diagnosis} — {r.residents.name}", f"/residents/{r.resident_id}",
+                      citations=[cite(f"{r.diagnosis}, {r.residents.name}", f"/residents/{r.resident_id}",
                                       "medical_record", r.id) for r in records[:5]])
 
 
@@ -46,7 +46,7 @@ def create_medical_record(ctx: ToolContext, args: CreateMedicalRecordArgs) -> To
     resident = ctx.gateway.get_resident(args.resident_id)
     payload = MedicalRecordCreate(**args.model_dump(), doctor=ctx.user.name)
     return propose(ctx, "create_medical_record", payload,
-                   f"Add medical record for {resident.name}: {args.diagnosis} — {args.treatment} "
+                   f"Add medical record for {resident.name}: {args.diagnosis}, {args.treatment} "
                    f"(checked {args.last_check_date}, doctor {ctx.user.name}).")
 
 

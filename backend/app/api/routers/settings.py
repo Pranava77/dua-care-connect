@@ -14,7 +14,7 @@ router = APIRouter(prefix="/settings", tags=["settings"])
 
 
 def _view(stored: StoredAiConfig, container: Container) -> dict:
-    """Never returns the key itself — only whether one is saved and its last four characters."""
+    """Never returns the key itself, only whether one is saved and its last four characters."""
     return {
         **container.ai_status(),
         "has_saved_key": stored.api_key is not None,

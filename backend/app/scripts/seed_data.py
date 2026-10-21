@@ -63,7 +63,7 @@ LEAVE_REQUESTS = [
 
 # Text bodies give the document Q&A something to read. They are fictional demo content.
 DOCUMENT_TEXT = {
-    "1": """ADMISSION FORM — SilverSync Residential Care
+    "1": """ADMISSION FORM, SilverSync Residential Care
 Resident: Alice Johnson   Date of birth: 15 March 1945   Room: 101   Admitted: 15 January 2024
 Next of kin: John Johnson (son), (555) 123-4567
 Reason for admission: increasing difficulty managing diabetes independently following a fall at home.
@@ -73,7 +73,7 @@ Mobility: walks with a frame; requires assistance on stairs. Falls risk: medium.
 Diet: diabetic diet, no added sugar. Prefers vegetarian meals on weekdays.
 Care preferences: likes morning showers, enjoys gardening and crossword puzzles.
 GP: Dr. Patel, Riverside Surgery.""",
-    "3": """CONSENT FORM — Medical Procedures
+    "3": """CONSENT FORM, Medical Procedures
 Resident: Ethel Williams   Room: 103
 Procedure: seasonal influenza vaccination and routine blood tests (HbA1c, renal function) every 3 months.
 Because the resident has a diagnosis of dementia, consent is sought from the holder of Lasting Power of
@@ -88,13 +88,13 @@ Included: accommodation, meals, laundry, 24-hour nursing care, activities progra
 Not included: hairdressing, chiropody, private physiotherapy, newspapers.
 Notice period: 28 days written notice by either party. Fees are reviewed annually each April.
 Signed: Sarah Brown (daughter, attorney) and Tom Anderson on behalf of the Home.""",
-    "6": """LABORATORY REPORT — Riverside Pathology
+    "6": """LABORATORY REPORT, Riverside Pathology
 Patient: Alice Johnson   DOB: 15/03/1945   Sample date: 19 January 2024   Requested by: Dr. Sarah Wilson
-HbA1c: 58 mmol/mol (7.5%)  [target < 53]  — slightly above target
-Fasting glucose: 7.8 mmol/L  [3.9–5.5]  — high
-eGFR: 62 mL/min/1.73m²  [> 60]  — normal
-Total cholesterol: 4.6 mmol/L  [< 5.0]  — normal
-Potassium: 4.3 mmol/L  [3.5–5.3]  — normal
+HbA1c: 58 mmol/mol (7.5%)  [target < 53] , slightly above target
+Fasting glucose: 7.8 mmol/L  [3.9–5.5] , high
+eGFR: 62 mL/min/1.73m²  [> 60] , normal
+Total cholesterol: 4.6 mmol/L  [< 5.0] , normal
+Potassium: 4.3 mmol/L  [3.5–5.3] , normal
 Comment: glycaemic control slightly above target. Suggest review of diabetes management at next visit
 and repeat HbA1c in 3 months.""",
 }
@@ -103,9 +103,9 @@ DOCUMENTS = [
     dict(id="1", name="Admission Form - Alice Johnson", category="Admission", file_type="TXT", file_size="0.8 KB",
          uploaded_by="Dr. Sarah Wilson", resident_id="1", status="Verified", uploaded_at="2024-01-15T10:00:00Z",
          description="Complete admission form with medical history"),
-    dict(id="2", name="Aadhaar Card - Robert Smith", category="KYC", file_type="PDF", file_size="1.8 MB",
+    dict(id="2", name="Passport copy - Robert Smith", category="KYC", file_type="PDF", file_size="1.8 MB",
          uploaded_by="Nurse Jennifer Lee", resident_id="2", status="Verified", uploaded_at="2024-01-16T10:00:00Z",
-         description="Government ID verification document"),
+         description="Photo ID checked at admission"),
     dict(id="3", name="Medical Consent - Ethel Williams", category="Consent", file_type="TXT", file_size="0.5 KB",
          uploaded_by="Dr. Sarah Wilson", resident_id="3", status="Pending", uploaded_at="2024-01-17T10:00:00Z",
          description="Consent for medical procedures"),
@@ -122,7 +122,7 @@ DOCUMENTS = [
 
 INVOICES = [
     dict(id="1", invoice_number="INV-001", resident_id="1", amount=15000, currency="GBP", status="Paid",
-         due_date="2024-01-31", created_at="2024-01-01T10:00:00Z", paid_at="2024-01-15T10:00:00Z", payment_method="UPI",
+         due_date="2024-01-31", created_at="2024-01-01T10:00:00Z", paid_at="2024-01-15T10:00:00Z", payment_method="Direct Debit",
          services=[{"name": "Room Charges", "amount": 10000, "description": "Monthly room rent"},
                    {"name": "Nursing Care", "amount": 3000, "description": "24/7 nursing services"},
                    {"name": "Meals", "amount": 2000, "description": "Daily meals"}],
@@ -146,7 +146,7 @@ INVOICES = [
                    {"name": "Meals", "amount": 2000, "description": "Daily meals"}],
          notes="Monthly invoice for January 2024"),
     dict(id="5", invoice_number="INV-005", resident_id="5", amount=19500, currency="GBP", status="Paid",
-         due_date="2024-02-01", created_at="2024-01-15T10:00:00Z", paid_at="2024-01-30T10:00:00Z", payment_method="NEFT",
+         due_date="2024-02-01", created_at="2024-01-15T10:00:00Z", paid_at="2024-01-30T10:00:00Z", payment_method="BACS",
          services=[{"name": "Room Charges", "amount": 13000, "description": "Monthly room rent"},
                    {"name": "Nursing Care", "amount": 3500, "description": "24/7 nursing services"},
                    {"name": "Meals", "amount": 2000, "description": "Daily meals"},
@@ -155,12 +155,12 @@ INVOICES = [
 ]
 
 PAYMENTS = [
-    dict(id="1", invoice_id="1", amount=15000, payment_method="UPI", transaction_id="TXN123456789",
-         payment_date="2024-01-15T10:00:00Z", processed_by="Dr. Sarah Wilson", notes="Payment received via UPI"),
-    dict(id="2", invoice_id="4", amount=16000, payment_method="Card", transaction_id="TXN987654321",
+    dict(id="1", invoice_id="1", amount=15000, payment_method="Direct Debit", transaction_id="DD-2024-0115-001",
+         payment_date="2024-01-15T10:00:00Z", processed_by="Dr. Sarah Wilson", notes="Monthly Direct Debit collected"),
+    dict(id="2", invoice_id="4", amount=16000, payment_method="Card", transaction_id="CARD-0128-4410",
          payment_date="2024-01-28T10:00:00Z", processed_by="Lisa Chen", notes="Payment received via credit card"),
-    dict(id="3", invoice_id="5", amount=19500, payment_method="NEFT", transaction_id="NEFT456789123",
-         payment_date="2024-01-30T10:00:00Z", processed_by="Tom Anderson", notes="Payment received via NEFT transfer"),
+    dict(id="3", invoice_id="5", amount=19500, payment_method="BACS", transaction_id="BACS-0130-7781",
+         payment_date="2024-01-30T10:00:00Z", processed_by="Tom Anderson", notes="BACS transfer from Michael Davis"),
 ]
 
 REPORTS = [

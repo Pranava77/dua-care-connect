@@ -6,7 +6,7 @@ from pydantic import Field
 from app.domain.dto import DTO, InputDTO
 
 InvoiceStatus = Literal["Paid", "Pending", "Overdue", "Cancelled"]
-PaymentMethod = Literal["UPI", "Card", "NEFT", "Cash", "Cheque"]
+PaymentMethod = Literal["BACS", "Card", "Direct Debit", "Cash", "Cheque"]
 
 
 class InvoiceLine(DTO):

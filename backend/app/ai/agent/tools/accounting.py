@@ -37,7 +37,7 @@ def get_financial_stats(ctx: ToolContext, _: NoArgs) -> ToolResult:
 
 class RecordPaymentArgs(BaseModel):
     invoice_id: str
-    payment_method: Literal["UPI", "Card", "NEFT", "Cash", "Cheque"]
+    payment_method: Literal["BACS", "Card", "Direct Debit", "Cash", "Cheque"]
     amount: float | None = Field(default=None, gt=0, description="Defaults to the full invoice amount")
     transaction_id: str | None = None
     notes: str | None = None

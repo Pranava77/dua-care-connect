@@ -137,3 +137,4 @@ class AlertItem(BaseModel):
     title: str
     detail: str
     url: str
+    resident_id: str | None = None

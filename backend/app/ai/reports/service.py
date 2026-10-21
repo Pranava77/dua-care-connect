@@ -94,25 +94,26 @@ class ReportsService:
                 when = f"overdue by {-due.days_until_refill} days" if due.overdue else f"due in {due.days_until_refill} days"
                 alerts.append(AlertItem(kind="refill_due", severity="high" if due.overdue else "medium",
                                         title=f"{p.medication} refill for {p.residents.name}",
-                                        detail=f"{p.dosage}, {p.frequency} — refill {when} ({p.refill_date}).",
-                                        url=f"/residents/{p.resident_id}"))
+                                        detail=f"Refill {when} ({p.refill_date:%d %b %Y}). {p.dosage}, {p.frequency.lower()}.",
+                                        url=f"/residents/{p.resident_id}", resident_id=p.resident_id))
         if "accounting:read" in perms:
             for item in gateway.outstanding_invoices():
                 if item.days_overdue > 0:
                     inv = item.invoice
                     alerts.append(AlertItem(kind="invoice_overdue", severity="high" if item.days_overdue > 30 else "medium",
-                                            title=f"{inv.invoice_number} overdue — {inv.resident_name}",
-                                            detail=f"£{inv.amount:,.0f} was due {inv.due_date} ({item.days_overdue} days ago).",
-                                            url="/accounting"))
+                                            title=f"{inv.invoice_number} overdue for {inv.resident_name}",
+                                            detail=f"£{inv.amount:,.0f} was due {inv.due_date:%d %b %Y} ({item.days_overdue} days ago).",
+                                            url="/accounting", resident_id=inv.resident_id))
         if "hr:read" in perms:
             for leave in gateway.list_leave_requests("pending"):
                 alerts.append(AlertItem(kind="leave_pending", severity="low",
                                         title=f"Leave request from {leave.staff.name}",
-                                        detail=f"{leave.from_date} to {leave.to_date}: {leave.reason}", url="/hr"))
+                                        detail=f"{leave.from_date:%d %b} to {leave.to_date:%d %b %Y}: {leave.reason}", url="/hr"))
         if "documents:read" in perms:
             for doc in gateway.list_documents():
                 if doc.status == "Pending":
                     alerts.append(AlertItem(kind="document_pending", severity="low",
-                                            title=f"Document awaiting verification", detail=doc.name, url="/documents"))
+                                            title="Document awaiting verification", detail=doc.name, url="/documents",
+                                            resident_id=doc.resident_id))
         order = {"high": 0, "medium": 1, "low": 2}
         return sorted(alerts, key=lambda a: order[a.severity])

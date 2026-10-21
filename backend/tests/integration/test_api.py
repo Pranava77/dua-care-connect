@@ -68,10 +68,13 @@ def test_record_payment_marks_invoice_paid(client, as_role):
     assert again.status_code == 400
 
 
-def test_prescriptions_due_includes_overdue(client, as_role):
-    due = client.get("/api/medical/prescriptions/due?days=7", headers=as_role("doctor")).json()["data"]
-    assert {d["prescription"]["medication"] for d in due} >= {"Metformin", "Lisinopril", "Donepezil"}
-    assert all(d["overdue"] for d in due)
+def test_prescriptions_due_follows_the_calendar(client, as_role):
+    # Seed dates move with today: Lisinopril is due in 5 days, the others later.
+    week = client.get("/api/medical/prescriptions/due?days=7", headers=as_role("doctor")).json()["data"]
+    assert [d["prescription"]["medication"] for d in week] == ["Lisinopril"]
+    assert week[0]["days_until_refill"] == 5 and not week[0]["overdue"]
+    month = client.get("/api/medical/prescriptions/due?days=30", headers=as_role("doctor")).json()["data"]
+    assert {d["prescription"]["medication"] for d in month} == {"Metformin", "Lisinopril", "Donepezil"}
 
 
 def test_dashboard_summary_hides_details_from_receptionist(client, as_role):
