@@ -22,7 +22,7 @@ export function ResidentProfileDialog({ resident, open, onOpenChange }: Resident
         <div className="space-y-6 py-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">Personal Information</h3>
+              <h3 className="text-lg font-semibold text-foreground mb-2">Personal information</h3>
               <p className="flex items-center gap-2 text-muted-foreground text-sm">
                 <Home className="h-4 w-4" /> Room: <span className="font-medium text-foreground">{resident.room_number}</span>
               </p>
@@ -34,7 +34,7 @@ export function ResidentProfileDialog({ resident, open, onOpenChange }: Resident
               </p>
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">Medical Overview</h3>
+              <h3 className="text-lg font-semibold text-foreground mb-2">Medical overview</h3>
               {resident.medical_conditions && resident.medical_conditions.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
                   {resident.medical_conditions.map((condition, index) => (
@@ -52,11 +52,11 @@ export function ResidentProfileDialog({ resident, open, onOpenChange }: Resident
           <Separator />
 
           <div>
-            <h3 className="text-lg font-semibold text-foreground mb-3">Recent Activity</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-3">Recent activity</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Latest Medical Record</CardTitle>
+                  <CardTitle className="text-sm font-medium">Latest medical record</CardTitle>
                   <FileText className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
@@ -66,7 +66,7 @@ export function ResidentProfileDialog({ resident, open, onOpenChange }: Resident
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Upcoming Prescription</CardTitle>
+                  <CardTitle className="text-sm font-medium">Upcoming prescription</CardTitle>
                   <FileText className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>

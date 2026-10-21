@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Door } from "@/components/door/Door";
+import { DoorMark } from "@/components/AppSidebar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -15,6 +17,7 @@ const authSchema = z.object({
 });
 
 const Login = () => {
+  useDocumentTitle("Sign in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -102,189 +105,98 @@ const Login = () => {
     }
   };
 
+  const field = "space-y-1.5";
+  const label = "text-sm font-bold";
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-5xl space-y-6">
-        {/* Header Section */}
-        <div className="text-center space-y-2 mb-2">
-          <h1 className="text-headline-1 text-gradient-primary font-bold">SilverSync</h1>
-          <p className="text-body text-muted-foreground">
-            Care Management Platform
-          </p>
+    <div className="grid min-h-svh lg:grid-cols-[1.15fr_1fr]">
+      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[200] focus:rounded-md focus:bg-foreground focus:px-4 focus:py-2 focus:text-background">
+        Skip to sign in
+      </a>
+      {/* The entrance: a stretch of corridor, one call light on */}
+      <aside className="relative flex flex-col justify-between gap-10 overflow-hidden border-b border-border bg-card px-[var(--gutter)] py-8 lg:border-b-0 lg:border-r lg:p-14">
+        <div className="flex items-center gap-2.5">
+          <DoorMark />
+          <span className="text-lg font-extrabold tracking-[-0.03em]">SilverSync</span>
         </div>
+        <p className="text-display max-w-[13ch] text-[clamp(1.75rem,1.2rem+3vw,4rem)]">Every resident has their own door.</p>
+        <div className="login-corridor" aria-hidden="true">
+          {["101", "102", "103", "104", "105"].map((room, i) => (
+            <Door key={room} room={room} name="" size="md" call={i === 2} className="login-corridor__door" />
+          ))}
+        </div>
+      </aside>
 
-        {/* Main Content Grid */}
-        <div className="grid md:grid-cols-2 gap-6 items-stretch">
-          {/* Login Card */}
-          <Card className="border-border/50 shadow-xl flex flex-col">
-          <CardHeader className="space-y-2 pb-6">
-            <CardTitle className="text-headline-2 text-center">Welcome</CardTitle>
-            <CardDescription className="text-center">
-              Sign in to your account or create a new one
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="login">Login</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="login" className="space-y-4 mt-6">
-                <form onSubmit={handleLogin} className="space-y-4">
-                  <div className="space-y-2">
-                    <Input
-                      type="email"
-                      placeholder="Enter your email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      disabled={isLoading}
-                      className="w-full"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Input
-                      type="password"
-                      placeholder="Enter your password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      disabled={isLoading}
-                      className="w-full"
-                    />
-                  </div>
-                  <Button 
-                    type="submit" 
-                    className="w-full mt-6" 
-                    disabled={isLoading}
-                    size="lg"
-                  >
-                    {isLoading ? "Logging in..." : "Login"}
-                  </Button>
-                  {/* Agency Logo */}
-                  <div className="flex justify-center items-center mt-6 pt-4 border-t border-border/50">
-                    <img 
-                      src="/agency-logo.png" 
-                      alt="Agency Logo" 
-                      className="h-8 opacity-70 hover:opacity-100 transition-opacity"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
-                    />
-                  </div>
-                </form>
-              </TabsContent>
-              
-              <TabsContent value="signup" className="space-y-4 mt-6">
-                <form onSubmit={handleSignup} className="space-y-4">
-                  <div className="space-y-2">
-                    <Input
-                      type="text"
-                      placeholder="Full Name"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      required
-                      disabled={isLoading}
-                      className="w-full"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Input
-                      type="email"
-                      placeholder="Enter your email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      disabled={isLoading}
-                      className="w-full"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Input
-                      type="password"
-                      placeholder="Password (min 6 characters)"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      disabled={isLoading}
-                      className="w-full"
-                    />
-                  </div>
-                  <Button 
-                    type="submit" 
-                    className="w-full mt-6" 
-                    disabled={isLoading}
-                    size="lg"
-                  >
-                    {isLoading ? "Creating account..." : "Sign Up"}
-                  </Button>
-                  {/* Agency Logo */}
-                  <div className="flex justify-center items-center mt-6 pt-4 border-t border-border/50">
-                    <img 
-                      src="/agency-logo.png" 
-                      alt="Agency Logo" 
-                      className="h-8 opacity-70 hover:opacity-100 transition-opacity"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
-                    />
-                  </div>
-                </form>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
+      <main id="main" className="flex items-center justify-center px-[var(--gutter)] py-12">
+        <div className="w-full max-w-[26rem] space-y-8">
+          <div className="space-y-2">
+            <h1 className="text-headline-1">Start your shift</h1>
+            <p className="text-muted-foreground">Sign in with your work email to see who needs you today.</p>
+          </div>
 
-        {/* QR Code Section */}
-        <Card className="border-border/50 shadow-xl flex flex-col">
-          <CardHeader className="space-y-2 pb-6">
-            <CardTitle className="text-headline-2 text-center">Share QR Code</CardTitle>
-            <CardDescription className="text-center">
-              Scan to access the platform
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col items-center justify-center space-y-4 flex-1">
-            <div className="w-full max-w-xs aspect-square bg-muted rounded-lg flex items-center justify-center border-2 border-dashed border-muted-foreground/30">
-              {/* QR Code - Place your QR code image at /public/qr-code.png or update the src below */}
-              {!qrCodeError ? (
-                <img 
-                  src="/qe-silversync.png" 
-                  alt="QR Code" 
-                  className="w-full h-full object-contain p-4"
-                  onError={() => setQrCodeError(true)}
-                />
-              ) : (
-                <div className="text-muted-foreground text-center p-4">
-                  <p className="text-sm">QR Code</p>
-                  <p className="text-xs mt-1">Coming Soon</p>
+          <Tabs defaultValue="login" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="login">Sign in</TabsTrigger>
+              <TabsTrigger value="signup">Create account</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="login" className="mt-6">
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div className={field}>
+                  <label htmlFor="login-email" className={label}>Work email</label>
+                  <Input id="login-email" type="email" autoComplete="email" value={email}
+                    onChange={(e) => setEmail(e.target.value)} required disabled={isLoading} />
                 </div>
-              )}
+                <div className={field}>
+                  <label htmlFor="login-password" className={label}>Password</label>
+                  <Input id="login-password" type="password" autoComplete="current-password" value={password}
+                    onChange={(e) => setPassword(e.target.value)} required disabled={isLoading} />
+                </div>
+                <Button type="submit" className="w-full" disabled={isLoading} size="lg">
+                  {isLoading ? "Signing in…" : "Sign in"}
+                </Button>
+              </form>
+            </TabsContent>
+
+            <TabsContent value="signup" className="mt-6">
+              <form onSubmit={handleSignup} className="space-y-4">
+                <div className={field}>
+                  <label htmlFor="signup-name" className={label}>Full name</label>
+                  <Input id="signup-name" type="text" autoComplete="name" value={fullName}
+                    onChange={(e) => setFullName(e.target.value)} required disabled={isLoading} />
+                </div>
+                <div className={field}>
+                  <label htmlFor="signup-email" className={label}>Work email</label>
+                  <Input id="signup-email" type="email" autoComplete="email" value={email}
+                    onChange={(e) => setEmail(e.target.value)} required disabled={isLoading} />
+                </div>
+                <div className={field}>
+                  <label htmlFor="signup-password" className={label}>Password</label>
+                  <Input id="signup-password" type="password" autoComplete="new-password" minLength={6} value={password}
+                    onChange={(e) => setPassword(e.target.value)} required disabled={isLoading} />
+                  <p className="text-xs text-muted-foreground">At least 6 characters. New accounts start with reception access; an administrator can change your role.</p>
+                </div>
+                <Button type="submit" className="w-full" disabled={isLoading} size="lg">
+                  {isLoading ? "Creating account…" : "Create account"}
+                </Button>
+              </form>
+            </TabsContent>
+          </Tabs>
+
+          <p className="border-t border-border pt-6 text-sm lg:hidden">
+            New here? Read <Link to="/about" className="text-link">what SilverSync does</Link>.
+          </p>
+          <div className="hidden items-center gap-4 border-t border-border pt-6 lg:flex">
+            <img src="/qe-silversync.png" alt="QR code that opens SilverSync on a phone" width={72} height={72}
+              className="h-[72px] w-[72px] rounded-md border border-border bg-white p-1"
+              onError={(e) => { e.currentTarget.style.display = "none"; }} />
+            <div className="space-y-1 text-sm">
+              <p className="font-bold">On the floor?</p>
+              <p className="text-muted-foreground">Scan to open SilverSync on your phone, or read <Link to="/about" className="text-link">what SilverSync does</Link>.</p>
             </div>
-            <p className="text-sm text-muted-foreground text-center max-w-xs">
-              Point your camera at this QR code to quickly access SilverSync
-            </p>
-          </CardContent>
-        </Card>
+          </div>
         </div>
-
-        {/* Documents Button */}
-        <div className="flex justify-center pt-2">
-          <Button
-            variant="outline"
-            className="w-full max-w-md"
-            size="lg"
-            onClick={() => navigate("/about")}
-          >
-            About SilverSync
-          </Button>
-        </div>
-
-        {/* Footer */}
-        <p className="text-center text-caption text-muted-foreground pt-2">
-          Secure authentication powered by SilverSync
-        </p>
-      </div>
+      </main>
     </div>
   );
 };

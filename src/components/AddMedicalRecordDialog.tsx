@@ -103,12 +103,12 @@ export function AddMedicalRecordDialog({ onSuccess }: { onSuccess?: () => void }
       <DialogTrigger asChild>
         <Button>
           <Plus className="mr-2 h-4 w-4" />
-          Add Medical Record
+          Add medical record
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="text-headline-2">Add Medical Record</DialogTitle>
+          <DialogTitle className="text-headline-2">Add medical record</DialogTitle>
           <DialogDescription className="text-body">Enter the medical record information below</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -126,7 +126,7 @@ export function AddMedicalRecordDialog({ onSuccess }: { onSuccess?: () => void }
                 <SelectContent>
                   {residents.map((resident) => (
                     <SelectItem key={resident.id} value={resident.id}>
-                      {resident.name} - Room {resident.room_number}
+                      {resident.name}, room {resident.room_number}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -197,7 +197,7 @@ export function AddMedicalRecordDialog({ onSuccess }: { onSuccess?: () => void }
               Cancel
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Adding..." : "Add Medical Record"}
+              {isLoading ? "Adding…" : "Add medical record"}
             </Button>
           </div>
         </form>

@@ -159,7 +159,7 @@ export function EditInvoiceDialog({ invoice, open, onOpenChange, onSuccess }: Ed
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Edit Invoice</DialogTitle>
+          <DialogTitle>Edit invoice</DialogTitle>
           <DialogDescription>Update the invoice information below</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -177,7 +177,7 @@ export function EditInvoiceDialog({ invoice, open, onOpenChange, onSuccess }: Ed
                 <SelectContent>
                   {residents.map((resident) => (
                     <SelectItem key={resident.id} value={resident.id}>
-                      {resident.name} - Room {resident.room_number}
+                      {resident.name}, room {resident.room_number}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -208,7 +208,7 @@ export function EditInvoiceDialog({ invoice, open, onOpenChange, onSuccess }: Ed
             {formData.services.map((service, index) => (
               <div key={index} className="grid grid-cols-12 gap-2 items-end">
                 <div className="col-span-4">
-                  <Label htmlFor={`service-name-${index}`}>Service Name</Label>
+                  <Label htmlFor={`service-name-${index}`}>Service name</Label>
                   <Input
                     id={`service-name-${index}`}
                     value={service.name}

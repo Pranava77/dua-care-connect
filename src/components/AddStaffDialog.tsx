@@ -98,12 +98,12 @@ export function AddStaffDialog({ onSuccess }: { onSuccess?: () => void }) {
       <DialogTrigger asChild>
         <Button>
           <Plus className="mr-2 h-4 w-4" />
-          Add Staff Member
+          Add staff member
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Add Staff Member</DialogTitle>
+          <DialogTitle>Add staff member</DialogTitle>
           <DialogDescription>Enter the staff member's information below</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -186,7 +186,7 @@ export function AddStaffDialog({ onSuccess }: { onSuccess?: () => void }) {
               Cancel
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Adding..." : "Add Staff Member"}
+              {isLoading ? "Adding…" : "Add staff member"}
             </Button>
           </div>
         </form>

@@ -77,7 +77,7 @@ export interface CareDocument {
   ai_suggestion?: DocSuggestion | null;
 }
 
-export type PaymentMethod = "UPI" | "Card" | "NEFT" | "Cash" | "Cheque";
+export type PaymentMethod = "BACS" | "Card" | "Direct Debit" | "Cash" | "Cheque";
 
 export interface Invoice {
   id: string;
@@ -178,6 +178,7 @@ export interface AlertItem {
   title: string;
   detail: string;
   url: string;
+  resident_id?: string | null;
 }
 
 export interface AiStatus {

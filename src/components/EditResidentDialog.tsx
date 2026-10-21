@@ -101,7 +101,7 @@ export function EditResidentDialog({ resident, open, onOpenChange, onSuccess }: 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="text-headline-2">Edit Resident</DialogTitle>
+          <DialogTitle className="text-headline-2">Edit resident</DialogTitle>
           <DialogDescription className="text-body">Update the resident's information below</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">

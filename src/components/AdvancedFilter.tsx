@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Filter, X, Calendar, User, DollarSign, FileText } from "lucide-react";
+import { Filter, X, Calendar, User, PoundSterling, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -61,7 +61,7 @@ export function AdvancedFilter({ module, onFiltersChange, onClearFilters, curren
         return (
           <>
             <div className="space-y-2">
-              <Label htmlFor="room-filter">Room Number</Label>
+              <Label htmlFor="room-filter">Room number</Label>
               <Input
                 id="room-filter"
                 placeholder="e.g., 101, 102"
@@ -75,13 +75,13 @@ export function AdvancedFilter({ module, onFiltersChange, onClearFilters, curren
                 value={filters.status || ''}
                 onValueChange={(value) => handleFilterChange('status', value)}
               >
-                <SelectTrigger>
+                <SelectTrigger aria-label="Status">
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="active">Active</SelectItem>
                   <SelectItem value="discharged">Discharged</SelectItem>
-                  <SelectItem value="on_leave">On Leave</SelectItem>
+                  <SelectItem value="on_leave">On leave</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -97,13 +97,13 @@ export function AdvancedFilter({ module, onFiltersChange, onClearFilters, curren
                 value={filters.department || ''}
                 onValueChange={(value) => handleFilterChange('department', value)}
               >
-                <SelectTrigger>
+                <SelectTrigger aria-label="Department">
                   <SelectValue placeholder="Select department" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Medical">Medical</SelectItem>
                   <SelectItem value="Nursing">Nursing</SelectItem>
-                  <SelectItem value="Care Staff">Care Staff</SelectItem>
+                  <SelectItem value="Care Staff">Care staff</SelectItem>
                   <SelectItem value="Admin">Admin</SelectItem>
                   <SelectItem value="Support">Support</SelectItem>
                 </SelectContent>
@@ -115,13 +115,13 @@ export function AdvancedFilter({ module, onFiltersChange, onClearFilters, curren
                 value={filters.status || ''}
                 onValueChange={(value) => handleFilterChange('status', value)}
               >
-                <SelectTrigger>
+                <SelectTrigger aria-label="Status">
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="active">Active</SelectItem>
                   <SelectItem value="inactive">Inactive</SelectItem>
-                  <SelectItem value="on_leave">On Leave</SelectItem>
+                  <SelectItem value="on_leave">On leave</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -146,7 +146,7 @@ export function AdvancedFilter({ module, onFiltersChange, onClearFilters, curren
                 value={filters.category || ''}
                 onValueChange={(value) => handleFilterChange('category', value)}
               >
-                <SelectTrigger>
+                <SelectTrigger aria-label="Category">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -169,7 +169,7 @@ export function AdvancedFilter({ module, onFiltersChange, onClearFilters, curren
                 value={filters.category || ''}
                 onValueChange={(value) => handleFilterChange('category', value)}
               >
-                <SelectTrigger>
+                <SelectTrigger aria-label="Category">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -188,7 +188,7 @@ export function AdvancedFilter({ module, onFiltersChange, onClearFilters, curren
                 value={filters.status || ''}
                 onValueChange={(value) => handleFilterChange('status', value)}
               >
-                <SelectTrigger>
+                <SelectTrigger aria-label="Status">
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -212,7 +212,7 @@ export function AdvancedFilter({ module, onFiltersChange, onClearFilters, curren
                 value={filters.status || ''}
                 onValueChange={(value) => handleFilterChange('status', value)}
               >
-                <SelectTrigger>
+                <SelectTrigger aria-label="Status">
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -225,7 +225,7 @@ export function AdvancedFilter({ module, onFiltersChange, onClearFilters, curren
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-2">
-                <Label htmlFor="min-amount">Min Amount</Label>
+                <Label htmlFor="min-amount">Min amount</Label>
                 <Input
                   id="min-amount"
                   type="number"
@@ -238,7 +238,7 @@ export function AdvancedFilter({ module, onFiltersChange, onClearFilters, curren
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="max-amount">Max Amount</Label>
+                <Label htmlFor="max-amount">Max amount</Label>
                 <Input
                   id="max-amount"
                   type="number"
@@ -267,7 +267,7 @@ export function AdvancedFilter({ module, onFiltersChange, onClearFilters, curren
         className="relative"
       >
         <Filter className="h-4 w-4 mr-2" />
-        Advanced Filters
+        Filters
         {getActiveFiltersCount() > 0 && (
           <Badge variant="secondary" className="ml-2 h-5 w-5 rounded-full p-0 text-xs">
             {getActiveFiltersCount()}
@@ -279,7 +279,7 @@ export function AdvancedFilter({ module, onFiltersChange, onClearFilters, curren
         <Card className="absolute top-full right-0 z-50 mt-2 w-80">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm">Filter Options</CardTitle>
+              <CardTitle className="text-sm">Filter options</CardTitle>
               <Button
                 variant="ghost"
                 size="sm"
@@ -292,7 +292,7 @@ export function AdvancedFilter({ module, onFiltersChange, onClearFilters, curren
           <CardContent className="space-y-4">
             {/* Date Range Filter */}
             <div className="space-y-2">
-              <Label>Date Range</Label>
+              <Label>Date range</Label>
               <div className="grid grid-cols-2 gap-2">
                 <Input
                   type="date"

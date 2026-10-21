@@ -1,9 +1,10 @@
 import { useState } from "react";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Plus, Download, TrendingUp, TrendingDown, DollarSign, CreditCard, Search, Filter, Edit, Trash2, MoreHorizontal, Eye } from "lucide-react";
+import { Plus, Download, TrendingUp, TrendingDown, PoundSterling, CreditCard, Search, Filter, Edit, Trash2, MoreHorizontal, Eye } from "lucide-react";
 import { CreateInvoiceDialog } from "@/components/CreateInvoiceDialog";
 import { EditInvoiceDialog } from "@/components/EditInvoiceDialog";
 import { InvoiceDetailsDialog } from "@/components/InvoiceDetailsDialog";
@@ -12,6 +13,8 @@ import { useDeleteInvoice, useFinancialStats, useInvoices, useUpdateInvoice } fr
 import { reportsApi } from "@/lib/api/reports";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { DoorChip } from "@/components/door/DoorChip";
+import { formatGBP } from "@/lib/format";
 import {
   Table,
   TableBody,
@@ -45,6 +48,7 @@ import {
 } from "@/components/ui/select";
 
 export default function Accounting() {
+  useDocumentTitle("Accounting");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -110,15 +114,22 @@ export default function Accounting() {
     return matchesSearch && matchesStatus;
   });
 
-  const services = [
-    { name: "Room Charges", revenue: "£8.5L", percentage: 46 },
-    { name: "Nursing Care", revenue: "£5.2L", percentage: 28 },
-    { name: "Medical Services", revenue: "£3.1L", percentage: 17 },
-    { name: "Diagnostics", revenue: "£1.7L", percentage: 9 },
-  ];
+  // Billed by service, summed from the line items of every invoice that is not cancelled.
+  const billed = new Map<string, number>();
+  for (const invoice of invoices) {
+    if (invoice.status === "Cancelled") continue;
+    for (const line of invoice.services) billed.set(line.name, (billed.get(line.name) ?? 0) + line.amount);
+  }
+  const billedTotal = [...billed.values()].reduce((a, b) => a + b, 0) || 1;
+  const services = [...billed.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, amount]) => ({ name, revenue: formatGBP(amount), percentage: Math.round((amount / billedTotal) * 100) }));
+  const paidCount = invoices.filter((i) => i.status === "Paid").length;
+  const unpaidCount = invoices.filter((i) => i.status === "Pending" || i.status === "Overdue").length;
+  const monthName = new Date().toLocaleDateString("en-GB", { month: "long" });
 
   const statusOptions = [
-    { value: "all", label: "All Status" },
+    { value: "all", label: "All status" },
     { value: "Paid", label: "Paid" },
     { value: "Pending", label: "Pending" },
     { value: "Overdue", label: "Overdue" },
@@ -127,29 +138,29 @@ export default function Accounting() {
 
   const stats = [
     {
-      title: "Total Revenue",
-      value: `£${(financialStats.totalRevenue / 100000).toFixed(1)}L`,
-      trend: "+12.5%",
+      title: "Total revenue",
+      value: formatGBP(financialStats.totalRevenue),
+      trend: `${paidCount} paid ${paidCount === 1 ? "invoice" : "invoices"}`,
       icon: TrendingUp,
       color: "text-success",
     },
     {
-      title: "Outstanding Dues",
-      value: `£${(financialStats.outstandingDues / 100000).toFixed(1)}L`,
-      trend: "-5.2%",
+      title: "Outstanding dues",
+      value: formatGBP(financialStats.outstandingDues),
+      trend: `${unpaidCount} unpaid ${unpaidCount === 1 ? "invoice" : "invoices"}`,
       icon: TrendingDown,
       color: "text-warning",
     },
     {
-      title: "This Month",
-      value: `£${(financialStats.thisMonthRevenue / 100000).toFixed(1)}L`,
-      trend: "+8.3%",
-      icon: DollarSign,
+      title: "This month",
+      value: formatGBP(financialStats.thisMonthRevenue),
+      trend: `Paid in ${monthName}`,
+      icon: PoundSterling,
       color: "text-primary",
     },
     {
-      title: "Paid Today",
-      value: `£${(financialStats.paidToday / 1000).toFixed(0)}K`,
+      title: "Paid today",
+      value: formatGBP(financialStats.paidToday),
       trend: `${financialStats.paidTodayCount} payments`,
       icon: CreditCard,
       color: "text-secondary",
@@ -158,10 +169,10 @@ export default function Accounting() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="page-head">
         <div>
-          <h2 className="text-headline-1 font-bold text-foreground">Accounting & Billing</h2>
-          <p className="text-body text-muted-foreground">Manage invoices, payments, and financial records</p>
+          <h1 className="text-headline-1">Accounting</h1>
+          <p className="mt-3 text-muted-foreground">Invoices, payments and what each resident owes. Amounts in pounds sterling.</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleExport}>
@@ -173,7 +184,7 @@ export default function Accounting() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {stats.map((stat) => (
           <Card key={stat.title}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -194,7 +205,7 @@ export default function Accounting() {
         <Card className="md:col-span-2">
           <CardHeader>
             <div className="flex items-center gap-4">
-              <CardTitle>Recent Invoices</CardTitle>
+              <CardTitle>Recent invoices</CardTitle>
               <div className="flex items-center gap-2 ml-auto">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -206,7 +217,7 @@ export default function Accounting() {
                   />
                 </div>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[140px]">
+                  <SelectTrigger className="w-[140px]" aria-label="Filter by status">
                     <SelectValue placeholder="Filter by status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -228,8 +239,8 @@ export default function Accounting() {
                   <TableHead>Resident</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Due Date</TableHead>
-                  <TableHead>Payment Method</TableHead>
+                  <TableHead>Due date</TableHead>
+                  <TableHead>Payment method</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -251,7 +262,7 @@ export default function Accounting() {
                   filteredInvoices.map((invoice) => (
                     <TableRow key={invoice.id}>
                       <TableCell className="font-medium">{invoice.invoice_number}</TableCell>
-                      <TableCell>{invoice.resident_name}</TableCell>
+                      <TableCell><DoorChip residentId={invoice.resident_id} name={invoice.resident_name} link /></TableCell>
                       <TableCell className="font-semibold">£{invoice.amount.toLocaleString()}</TableCell>
                       <TableCell>
                         <Badge
@@ -280,7 +291,7 @@ export default function Accounting() {
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="hover:bg-primary/10">
+                            <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="More actions">
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
@@ -321,7 +332,7 @@ export default function Accounting() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Revenue by Service</CardTitle>
+            <CardTitle>Billed by service</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -331,9 +342,9 @@ export default function Accounting() {
                     <span className="font-medium text-foreground">{service.name}</span>
                     <span className="text-muted-foreground">{service.revenue}</span>
                   </div>
-                  <div className="w-full bg-muted rounded-full h-2">
+                  <div className="w-full bg-muted rounded-sm h-2">
                     <div
-                      className="bg-primary h-2 rounded-full transition-all"
+                      className="bg-primary h-2 rounded-sm"
                       style={{ width: `${service.percentage}%` }}
                     />
                   </div>
@@ -370,7 +381,7 @@ export default function Accounting() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Invoice</AlertDialogTitle>
+            <AlertDialogTitle>Delete invoice</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete invoice {invoiceToDelete?.invoice_number}? This action cannot be undone.
             </AlertDialogDescription>

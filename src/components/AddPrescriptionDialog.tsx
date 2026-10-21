@@ -102,12 +102,12 @@ export function AddPrescriptionDialog({ onSuccess }: { onSuccess?: () => void })
       <DialogTrigger asChild>
         <Button>
           <Plus className="mr-2 h-4 w-4" />
-          Add Prescription
+          Add prescription
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="text-headline-2">Add Prescription</DialogTitle>
+          <DialogTitle className="text-headline-2">Add prescription</DialogTitle>
           <DialogDescription className="text-body">Enter the prescription information below</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -125,7 +125,7 @@ export function AddPrescriptionDialog({ onSuccess }: { onSuccess?: () => void })
                 <SelectContent>
                   {residents.map((resident) => (
                     <SelectItem key={resident.id} value={resident.id}>
-                      {resident.name} - Room {resident.room_number}
+                      {resident.name}, room {resident.room_number}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -208,7 +208,7 @@ export function AddPrescriptionDialog({ onSuccess }: { onSuccess?: () => void })
               Cancel
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Adding..." : "Add Prescription"}
+              {isLoading ? "Adding…" : "Add prescription"}
             </Button>
           </div>
         </form>

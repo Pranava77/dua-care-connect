@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Loader2, Search, Sparkles, X } from "lucide-react";
+import { CalendarDays, FileText, HeartPulse, Loader2, Pill, PoundSterling, Search, Sparkles, UserCog, Users, X } from "lucide-react";
+import { DoorChip } from "@/components/door/DoorChip";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,16 +21,16 @@ const FILTER_TYPES = {
 
 type FilterKey = keyof typeof FILTER_TYPES;
 
-const TYPE_META: Record<string, { icon: string; label: string; color: string }> = {
-  resident: { icon: "👤", label: "Residents", color: "bg-blue-100 text-blue-800" },
-  staff: { icon: "👨‍💼", label: "Staff", color: "bg-green-100 text-green-800" },
-  leave_request: { icon: "🗓️", label: "Leave", color: "bg-green-100 text-green-800" },
-  medical_record: { icon: "🏥", label: "Medical", color: "bg-red-100 text-red-800" },
-  prescription: { icon: "💊", label: "Prescriptions", color: "bg-purple-100 text-purple-800" },
-  invoice: { icon: "💰", label: "Invoices", color: "bg-yellow-100 text-yellow-800" },
-  payment: { icon: "💳", label: "Payments", color: "bg-yellow-100 text-yellow-800" },
-  document: { icon: "📄", label: "Documents", color: "bg-gray-100 text-gray-800" },
-  document_chunk: { icon: "📄", label: "Document text", color: "bg-gray-100 text-gray-800" },
+const TYPE_META: Record<string, { label: string; Icon: typeof FileText }> = {
+  resident: { label: "Resident", Icon: Users },
+  staff: { label: "Staff", Icon: UserCog },
+  leave_request: { label: "Leave", Icon: CalendarDays },
+  medical_record: { label: "Medical", Icon: HeartPulse },
+  prescription: { label: "Prescription", Icon: Pill },
+  invoice: { label: "Invoice", Icon: PoundSterling },
+  payment: { label: "Payment", Icon: PoundSterling },
+  document: { label: "Document", Icon: FileText },
+  document_chunk: { label: "Document text", Icon: FileText },
 };
 
 interface GlobalSearchProps {
@@ -78,7 +79,8 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search anything, e.g. “residents with diabetes”"
+          placeholder="Find a resident or record"
+          aria-label="Search residents, records and documents"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setShowResults(query.trim().length >= 2)}
@@ -99,7 +101,7 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
 
       {showResults && (
         <div className="absolute top-full left-0 right-0 z-[100] mt-1">
-          <Card className="max-h-[28rem] overflow-y-auto shadow-lg border-border">
+          <Card className="max-h-[28rem] overflow-y-auto border-foreground/20 shadow-[0_18px_40px_-20px_rgb(0_0_0/0.35)]">
             <CardHeader className="pb-2 space-y-2">
               <div className="flex flex-wrap gap-1.5">
                 {(Object.keys(filters) as FilterKey[]).map((key) => (
@@ -135,27 +137,32 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
                 <div className="text-center text-sm text-muted-foreground py-4">No matching records for "{query}"</div>
               ) : (
                 results.map((result) => {
-                  const meta = TYPE_META[result.type] ?? { icon: "📋", label: result.type, color: "bg-gray-100 text-gray-800" };
+                  const meta = TYPE_META[result.type] ?? { label: result.type, Icon: FileText };
                   return (
-                    <div
+                    <button
+                      type="button"
                       key={`${result.type}-${result.id}`}
-                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                      className="door-row flex w-full items-center gap-3 rounded-md p-3 text-left transition-colors hover:bg-muted/60 focus-visible:bg-muted/60"
                       onClick={() => {
                         onResultClick?.(result);
                         clearSearch();
                       }}
                     >
-                      <div className="text-lg flex-shrink-0">{meta.icon}</div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <p className="font-medium text-sm truncate">{result.title}</p>
-                          <Badge variant="outline" className={`text-xs ${meta.color} flex-shrink-0`}>
-                            {meta.label}
-                          </Badge>
-                        </div>
-                        <p className="text-xs text-muted-foreground line-clamp-2">{result.snippet}</p>
-                      </div>
-                    </div>
+                      {result.resident_id ? (
+                        <DoorChip residentId={result.resident_id} showName={false} className="flex-none" />
+                      ) : (
+                        <span className="grid h-[2.1rem] w-[1.55rem] flex-none place-items-center text-muted-foreground" aria-hidden="true">
+                          <meta.Icon className="h-4 w-4" />
+                        </span>
+                      )}
+                      <span className="min-w-0 flex-1">
+                        <span className="flex items-center gap-2">
+                          <span className="truncate text-sm font-bold">{result.title}</span>
+                          <span className="sign-label flex-none text-[0.625rem] text-muted-foreground">{meta.label}</span>
+                        </span>
+                        <span className="line-clamp-2 text-xs text-muted-foreground">{result.snippet}</span>
+                      </span>
+                    </button>
                   );
                 })
               )}

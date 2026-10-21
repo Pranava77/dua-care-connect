@@ -14,7 +14,7 @@ import { CreditCard } from "lucide-react";
 const paymentSchema = z.object({
   invoice_id: z.string().min(1, "Invoice is required"),
   amount: z.number().min(0, "Amount must be positive"),
-  payment_method: z.enum(['UPI', 'Card', 'NEFT', 'Cash', 'Cheque']),
+  payment_method: z.enum(['BACS', 'Card', 'Direct Debit', 'Cash', 'Cheque']),
   transaction_id: z.string().optional(),
   payment_date: z.string().min(1, "Payment date is required"),
   notes: z.string().optional(),
@@ -33,14 +33,14 @@ export function RecordPaymentDialog({ onSuccess }: { onSuccess?: () => void }) {
   const [formData, setFormData] = useState<{
     invoice_id: string;
     amount: string;
-    payment_method: 'UPI' | 'Card' | 'NEFT' | 'Cash' | 'Cheque';
+    payment_method: 'BACS' | 'Card' | 'Direct Debit' | 'Cash' | 'Cheque';
     transaction_id: string;
     payment_date: string;
     notes: string;
   }>({
     invoice_id: "",
     amount: "",
-    payment_method: "UPI",
+    payment_method: "BACS",
     transaction_id: "",
     payment_date: "",
     notes: "",
@@ -89,7 +89,7 @@ export function RecordPaymentDialog({ onSuccess }: { onSuccess?: () => void }) {
       setFormData({
         invoice_id: "",
         amount: "",
-        payment_method: "UPI",
+        payment_method: "BACS",
         transaction_id: "",
         payment_date: "",
         notes: "",
@@ -119,12 +119,12 @@ export function RecordPaymentDialog({ onSuccess }: { onSuccess?: () => void }) {
       <DialogTrigger asChild>
         <Button variant="outline">
           <CreditCard className="mr-2 h-4 w-4" />
-          Record Payment
+          Record payment
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Record Payment</DialogTitle>
+          <DialogTitle>Record payment</DialogTitle>
           <DialogDescription>Record a payment for an outstanding invoice</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -141,7 +141,7 @@ export function RecordPaymentDialog({ onSuccess }: { onSuccess?: () => void }) {
               <SelectContent>
                 {invoices.map((invoice) => (
                   <SelectItem key={invoice.id} value={invoice.id}>
-                    {invoice.invoice_number} - {invoice.resident_name} (£{invoice.amount.toLocaleString()})
+                    {invoice.invoice_number}, {invoice.resident_name} (£{invoice.amount.toLocaleString()})
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -171,7 +171,7 @@ export function RecordPaymentDialog({ onSuccess }: { onSuccess?: () => void }) {
               <Label htmlFor="payment_method">Payment Method *</Label>
               <Select
                 value={formData.payment_method}
-                onValueChange={(value: 'UPI' | 'Card' | 'NEFT' | 'Cash' | 'Cheque') => 
+                onValueChange={(value: 'BACS' | 'Card' | 'Direct Debit' | 'Cash' | 'Cheque') => 
                   setFormData({ ...formData, payment_method: value })
                 }
                 disabled={isLoading}
@@ -180,9 +180,9 @@ export function RecordPaymentDialog({ onSuccess }: { onSuccess?: () => void }) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="UPI">UPI</SelectItem>
+                  <SelectItem value="BACS">BACS transfer</SelectItem>
                   <SelectItem value="Card">Card</SelectItem>
-                  <SelectItem value="NEFT">NEFT</SelectItem>
+                  <SelectItem value="Direct Debit">Direct Debit</SelectItem>
                   <SelectItem value="Cash">Cash</SelectItem>
                   <SelectItem value="Cheque">Cheque</SelectItem>
                 </SelectContent>
@@ -230,7 +230,7 @@ export function RecordPaymentDialog({ onSuccess }: { onSuccess?: () => void }) {
               Cancel
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Recording..." : "Record Payment"}
+              {isLoading ? "Recording…" : "Record payment"}
             </Button>
           </div>
         </form>

@@ -1,491 +1,127 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Heart, AlertCircle, FileText, TrendingUp, Calendar, Activity } from "lucide-react";
-import { useDashboardSummary } from "@/hooks/queries/reports";
-import { AiAlertsCard } from "@/features/ai-reports/AiAlertsCard";
+import { useEffect, useState } from "react";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { 
-  LineChart, 
-  Line, 
-  AreaChart, 
-  Area, 
-  BarChart, 
-  Bar, 
-  PieChart, 
-  Pie, 
-  Cell, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
-  ResponsiveContainer 
-} from "recharts";
+import { useDashboardSummary } from "@/hooks/queries/reports";
+import { useResidents } from "@/hooks/queries/residents";
+import { useAlerts } from "@/hooks/queries/ai";
+import { Corridor } from "@/features/corridor/Corridor";
+import { AiAlertsCard } from "@/features/ai-reports/AiAlertsCard";
+import { DoorChip } from "@/components/door/DoorChip";
+import { firstName, greeting } from "@/lib/people";
+import { hasPermission } from "@/lib/rbac";
+
+function useNow(intervalMs = 30_000) {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(new Date()), intervalMs);
+    return () => window.clearInterval(id);
+  }, [intervalMs]);
+  return now;
+}
 
 export default function Dashboard() {
-  const { data: summary } = useDashboardSummary();
-  const stats = {
-    residents: summary?.residents ?? 0,
-    medicalCases: summary?.medicalCases ?? 0,
-    prescriptions: summary?.prescriptions ?? 0,
-    staff: summary?.staff ?? 0,
-  };
-  const recentResidents = summary?.recentResidents ?? [];
-  const recentPrescriptions = summary?.recentPrescriptions ?? [];
-  const [chartData, setChartData] = useState({
-    occupancyTrend: [],
-    revenueTrend: [],
-    medicalAlerts: [],
-    staffAttendance: []
-  });
+  useDocumentTitle("Dashboard");
   const { user } = useAuth();
+  const now = useNow();
+  const { data: summary } = useDashboardSummary();
+  const { data: residents = [], isLoading } = useResidents();
+  const { data: alerts = [] } = useAlerts();
 
-  useEffect(() => {
-    if (user) {
-      fetchDashboardData();
-    }
-  }, [user]);
+  const roomsNeeding = new Set(alerts.filter((a) => a.resident_id).map((a) => a.resident_id)).size;
+  const date = now.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
+  const time = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 
-  const fetchDashboardData = async () => {
-    try {
-      // Generate mock chart data
-      setChartData({
-        occupancyTrend: [
-          { month: 'Jan', occupancy: 85, admissions: 3 },
-          { month: 'Feb', occupancy: 88, admissions: 2 },
-          { month: 'Mar', occupancy: 92, admissions: 4 },
-          { month: 'Apr', occupancy: 89, admissions: 1 },
-          { month: 'May', occupancy: 95, admissions: 5 },
-          { month: 'Jun', occupancy: 91, admissions: 2 }
-        ],
-        revenueTrend: [
-          { month: 'Jan', revenue: 185000, expenses: 120000 },
-          { month: 'Feb', revenue: 192000, expenses: 125000 },
-          { month: 'Mar', revenue: 210000, expenses: 130000 },
-          { month: 'Apr', revenue: 198000, expenses: 128000 },
-          { month: 'May', revenue: 225000, expenses: 135000 },
-          { month: 'Jun', revenue: 218000, expenses: 132000 }
-        ],
-        medicalAlerts: [
-          { name: 'Critical', value: 2, color: '#ef4444' },
-          { name: 'High', value: 5, color: '#f97316' },
-          { name: 'Medium', value: 8, color: '#eab308' },
-          { name: 'Low', value: 12, color: '#22c55e' }
-        ],
-        staffAttendance: [
-          { day: 'Mon', present: 18, absent: 2 },
-          { day: 'Tue', present: 19, absent: 1 },
-          { day: 'Wed', present: 17, absent: 3 },
-          { day: 'Thu', present: 20, absent: 0 },
-          { day: 'Fri', present: 18, absent: 2 },
-          { day: 'Sat', present: 16, absent: 4 },
-          { day: 'Sun', present: 15, absent: 5 }
-        ]
-      });
-    } catch (error) {
-      console.error("Error fetching dashboard data:", error);
-    }
-  };
-
-  const dashboardStats = [
-    {
-      title: "Total Residents",
-      value: stats.residents.toString(),
-      icon: Users,
-      trend: `${recentResidents.length} recent`,
-      color: "text-primary",
-      borderColor: "bg-primary",
-      isPrimary: true,
-    },
-    {
-      title: "Medical Records",
-      value: stats.medicalCases.toString(),
-      icon: Heart,
-      trend: "Active cases",
-      color: "text-secondary",
-      borderColor: "bg-secondary",
-      isPrimary: false,
-    },
-    {
-      title: "Prescriptions",
-      value: stats.prescriptions.toString(),
-      icon: FileText,
-      trend: "Total tracked",
-      color: "text-warning",
-      borderColor: "bg-warning",
-      isPrimary: false,
-    },
-    {
-      title: "Staff Members",
-      value: stats.staff.toString(),
-      icon: AlertCircle,
-      trend: "Active staff",
-      color: "text-success",
-      borderColor: "bg-success",
-      isPrimary: false,
-    },
+  const facts = [
+    { label: "Residents", value: summary?.residents, href: "/residents", permission: "residents:read" as const },
+    { label: "Medical records", value: summary?.medicalCases, href: "/medical", permission: "medical:read" as const },
+    { label: "Prescriptions", value: summary?.prescriptions, href: "/medical", permission: "medical:read" as const },
+    { label: "Staff", value: summary?.staff, href: "/hr", permission: "hr:read" as const },
   ];
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-headline-1 font-bold text-gradient-primary">Dashboard</h2>
-        <p className="text-body text-muted-foreground">Welcome back! Here's your institution overview.</p>
-      </div>
+    <div className="space-y-14">
+      <header className="grid gap-4 md:grid-cols-12 md:items-end">
+        <div className="md:col-span-8">
+          <p className="font-mono text-sm text-muted-foreground">
+            <time dateTime={now.toISOString()}>{date} · {time}</time>
+          </p>
+          <h1 className="text-display mt-3">
+            {greeting(now.getHours())}, {user ? firstName(user.name) : "there"}.
+          </h1>
+        </div>
+        <p className="text-lg md:col-span-4 md:text-right md:pb-1.5">
+          {roomsNeeding === 0
+            ? "Every call light is off."
+            : `${roomsNeeding} ${roomsNeeding === 1 ? "room needs" : "rooms need"} you today.`}
+        </p>
+      </header>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {dashboardStats.map((stat) => (
-          <Card key={stat.title} className={`relative overflow-hidden hover:scale-105 transition-all duration-300 card-hover ${stat.isPrimary ? 'pulse-primary' : ''}`}>
-            <div className={`absolute left-0 top-0 h-full w-1 ${stat.borderColor}`} />
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {stat.title}
-              </CardTitle>
-              <stat.icon className={`h-5 w-5 ${stat.color} transition-transform hover:scale-110`} />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-foreground">{stat.value}</div>
-              <p className="text-xs text-muted-foreground mt-1">{stat.trend}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <section aria-labelledby="the-house" className="space-y-6">
+        <div className="flex items-baseline justify-between gap-4">
+          <h2 id="the-house" className="text-headline-2">The house</h2>
+          <p className="pointer-only text-sm text-muted-foreground">
+            Point at a door to look in. A lit call light means the room needs someone.
+          </p>
+        </div>
+        {isLoading ? (
+          <div className="corridor-skeleton rounded-lg bg-muted/60" aria-hidden="true" />
+        ) : (
+          <Corridor residents={residents} alerts={alerts} />
+        )}
+      </section>
 
-      <AiAlertsCard />
+      <div className="grid gap-10 lg:grid-cols-12">
+        <div className="min-w-0 lg:col-span-8">
+          <AiAlertsCard />
+        </div>
 
-      {/* Charts Section */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="overflow-hidden border-0 shadow-lg card-hover">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-3 text-lg">
-              <div className="p-2 rounded-lg bg-primary text-primary-foreground">
-                <TrendingUp className="h-5 w-5" />
-              </div>
-              <span className="text-gradient-primary font-semibold">
-                Occupancy Trend
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <ResponsiveContainer width="100%" height={320}>
-              <AreaChart data={chartData.occupancyTrend} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-                <defs>
-                  <linearGradient id="occupancyGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.1}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-                <XAxis 
-                  dataKey="month" 
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                />
-                <YAxis 
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                />
-                <Tooltip 
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '12px',
-                    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
-                    color: 'hsl(var(--card-foreground))'
-                  }}
-                  labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: '600' }}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="occupancy" 
-                  stroke="hsl(var(--primary))" 
-                  strokeWidth={3}
-                  fill="url(#occupancyGradient)"
-                  dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }}
-                  activeDot={{ r: 6, stroke: 'hsl(var(--primary))', strokeWidth: 2, fill: 'hsl(var(--background))' }}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        <aside className="min-w-0 space-y-10 lg:col-span-4" aria-label="At a glance">
+          <section aria-labelledby="glance" className="space-y-4">
+            <h2 id="glance" className="text-headline-2">At a glance</h2>
+            <ul className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border bg-border" role="list">
+              {facts.map((f) => {
+                const body = (
+                  <>
+                    <span className="text-sm text-muted-foreground">{f.label}</span>
+                    <span className="flex items-end justify-between gap-2">
+                      <span className="font-mono text-4xl font-bold tracking-[-0.04em] tabular">{f.value ?? "…"}</span>
+                    </span>
+                  </>
+                );
+                return (
+                  <li key={f.label} className="bg-card">
+                    {hasPermission(user, f.permission) ? (
+                      <Link to={f.href} className="arrow-host group flex h-full flex-col gap-1 p-4 transition-colors hover:bg-muted/60 focus-visible:bg-muted/60">
+                        {body}
+                        <ArrowRight className="arrow -mt-6 ml-auto h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                      </Link>
+                    ) : (
+                      <div className="flex h-full flex-col gap-1 p-4">{body}</div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
 
-        <Card className="overflow-hidden border-0 shadow-lg card-hover">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-3 text-lg">
-              <div className="p-2 rounded-lg bg-success text-success-foreground">
-                <FileText className="h-5 w-5" />
-              </div>
-              <span className="text-success font-semibold">
-                Revenue vs Expenses
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <ResponsiveContainer width="100%" height={320}>
-              <LineChart data={chartData.revenueTrend} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-                <XAxis 
-                  dataKey="month" 
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                />
-                <YAxis 
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                />
-                <Tooltip 
-                  formatter={(value: number) => [`£${(value / 1000).toFixed(0)}K`, '']}
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '12px',
-                    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
-                    color: 'hsl(var(--card-foreground))'
-                  }}
-                  labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: '600' }}
-                />
-                <Legend 
-                  wrapperStyle={{ paddingTop: '20px' }}
-                  iconType="line"
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="revenue" 
-                  stroke="hsl(var(--success))" 
-                  strokeWidth={3}
-                  dot={{ fill: 'hsl(var(--success))', strokeWidth: 2, r: 4 }}
-                  activeDot={{ r: 6, stroke: 'hsl(var(--success))', strokeWidth: 2, fill: 'hsl(var(--background))' }}
-                  name="Revenue"
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="expenses" 
-                  stroke="hsl(var(--destructive))" 
-                  strokeWidth={3}
-                  dot={{ fill: 'hsl(var(--destructive))', strokeWidth: 2, r: 4 }}
-                  activeDot={{ r: 6, stroke: 'hsl(var(--destructive))', strokeWidth: 2, fill: 'hsl(var(--background))' }}
-                  name="Expenses"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="overflow-hidden border-0 shadow-lg card-hover">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-3 text-lg">
-              <div className="p-2 rounded-lg bg-warning text-warning-foreground">
-                <AlertCircle className="h-5 w-5" />
-              </div>
-              <span className="text-warning font-semibold">
-                Medical Alerts Distribution
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <ResponsiveContainer width="100%" height={320}>
-              <PieChart>
-                <Pie
-                  data={chartData.medicalAlerts}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={100}
-                  innerRadius={40}
-                  paddingAngle={2}
-                  dataKey="value"
-                >
-                  {chartData.medicalAlerts.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={entry.color}
-                      stroke="hsl(var(--card))"
-                      strokeWidth={2}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '12px',
-                    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
-                    color: 'hsl(var(--card-foreground))'
-                  }}
-                  labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: '600' }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              {chartData.medicalAlerts.map((alert, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <div 
-                    className="w-3 h-3 rounded-full" 
-                    style={{ backgroundColor: alert.color }}
-                  />
-                  <span className="text-sm text-muted-foreground">{alert.name}</span>
-                  <span className="text-sm font-medium">{alert.value}</span>
-                </div>
+          <section aria-labelledby="newest" className="space-y-4">
+            <h2 id="newest" className="text-headline-2">Newest residents</h2>
+            <ul className="space-y-3" role="list">
+              {(summary?.recentResidents ?? []).map((r) => (
+                <li key={r.id}>
+                  <Link to={`/residents/${r.id}`} className="door-row flex items-center justify-between gap-3 rounded-md py-1">
+                    <DoorChip residentId={r.id} room={r.room_number} name={r.name} />
+                    <span className="font-mono text-xs text-muted-foreground tabular">
+                      since {new Date(r.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                    </span>
+                  </Link>
+                </li>
               ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="overflow-hidden border-0 shadow-lg card-hover">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-3 text-lg">
-              <div className="p-2 rounded-lg bg-secondary text-secondary-foreground">
-                <Activity className="h-5 w-5" />
-              </div>
-              <span className="text-secondary font-semibold">
-                Staff Attendance This Week
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <ResponsiveContainer width="100%" height={320}>
-              <BarChart data={chartData.staffAttendance} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-                <defs>
-                  <linearGradient id="presentGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(var(--success))" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="hsl(var(--success))" stopOpacity={0.8}/>
-                  </linearGradient>
-                  <linearGradient id="absentGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(var(--destructive))" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="hsl(var(--destructive))" stopOpacity={0.8}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-                <XAxis 
-                  dataKey="day" 
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                />
-                <YAxis 
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                />
-                <Tooltip 
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '12px',
-                    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
-                    color: 'hsl(var(--card-foreground))'
-                  }}
-                  labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: '600' }}
-                />
-                <Legend 
-                  wrapperStyle={{ paddingTop: '20px' }}
-                  iconType="rect"
-                />
-                <Bar 
-                  dataKey="present" 
-                  fill="url(#presentGradient)" 
-                  name="Present"
-                  radius={[4, 4, 0, 0]}
-                />
-                <Bar 
-                  dataKey="absent" 
-                  fill="url(#absentGradient)" 
-                  name="Absent"
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="overflow-hidden border-0 shadow-lg card-hover">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-3 text-lg">
-              <div className="p-2 rounded-lg bg-accent text-accent-foreground">
-                <Users className="h-5 w-5" />
-              </div>
-              <span className="text-accent font-semibold">
-                Recent Admissions
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="space-y-4">
-              {recentResidents.length === 0 ? (
-                <div className="text-center text-sm text-muted-foreground py-8">
-                  <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  No recent admissions
-                </div>
-              ) : (
-                recentResidents.map((resident) => (
-                  <div key={resident.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-all duration-200">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold text-sm">
-                        {resident.name.charAt(0)}
-                      </div>
-                      <div>
-                        <p className="font-medium text-foreground">{resident.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          Admitted {Math.floor((new Date().getTime() - new Date(resident.created_at).getTime()) / (1000 * 60 * 60 * 24))} days ago
-                        </p>
-                      </div>
-                    </div>
-                    <span className="text-xs bg-success text-success-foreground px-3 py-1 rounded-full font-medium">New</span>
-                  </div>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="overflow-hidden border-0 shadow-lg card-hover">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-3 text-lg">
-              <div className="p-2 rounded-lg bg-primary text-primary-foreground">
-                <FileText className="h-5 w-5" />
-              </div>
-              <span className="text-primary font-semibold">
-                Upcoming Prescription Refills
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="space-y-4">
-              {recentPrescriptions.length === 0 ? (
-                <div className="text-center text-sm text-muted-foreground py-8">
-                  <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  No upcoming refills
-                </div>
-              ) : (
-                recentPrescriptions.map((prescription) => (
-                  <div key={prescription.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-all duration-200">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-warning text-warning-foreground flex items-center justify-center font-semibold text-sm">
-                        💊
-                      </div>
-                      <div>
-                        <p className="font-medium text-foreground">{prescription.medication}</p>
-                        <p className="text-sm text-muted-foreground">
-                          For {prescription.residents?.name}
-                        </p>
-                      </div>
-                    </div>
-                    <span className="text-xs bg-warning text-warning-foreground px-3 py-1 rounded-full font-medium">Refill {new Date(prescription.refill_date).toLocaleDateString()}</span>
-                  </div>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
+            </ul>
+          </section>
+        </aside>
       </div>
     </div>
   );

@@ -267,7 +267,7 @@ export const generateMarkdownReport = (title: string, markdown: string, generate
 
   write(title, 18, 'bold');
   doc.setTextColor(100);
-  write(`Generated ${new Date().toLocaleString()} by ${generatedBy} — AI draft, review before sharing`, 9);
+  write(`Generated ${new Date().toLocaleString()} by ${generatedBy}. AI draft: review before sharing.`, 9);
   doc.setTextColor(0);
   y += 4;
 

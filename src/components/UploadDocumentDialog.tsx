@@ -169,12 +169,12 @@ export function UploadDocumentDialog({ onSuccess }: { onSuccess?: () => void }) 
       <DialogTrigger asChild>
         <Button>
           <Upload className="mr-2 h-4 w-4" />
-          Upload Document
+          Upload document
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Upload Document</DialogTitle>
+          <DialogTitle>Upload document</DialogTitle>
           <DialogDescription>Upload a new document to the system</DialogDescription>
         </DialogHeader>
         {uploaded ? (
@@ -307,7 +307,7 @@ export function UploadDocumentDialog({ onSuccess }: { onSuccess?: () => void }) 
               Cancel
             </Button>
             <Button type="submit" disabled={isLoading || !selectedFile}>
-              {isLoading ? "Uploading..." : "Upload Document"}
+              {isLoading ? "Uploading…" : "Upload document"}
             </Button>
           </div>
         </form>

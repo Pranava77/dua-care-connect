@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { User, Shield, Settings, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { UserRole, getRoleDisplayName, getRoleColor, ROLE_PERMISSIONS } from "@/lib/rbac";
+import { UserRole, getRoleDisplayName, ROLE_PERMISSIONS } from "@/lib/rbac";
 import { PermissionGate } from "@/components/PermissionGate";
 import { toast } from "sonner";
 import { authApi } from "@/lib/api/auth";
@@ -51,7 +51,7 @@ export function UserProfileCard() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <User className="h-5 w-5" />
-          User Profile
+          Your profile
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -62,17 +62,17 @@ export function UserProfileCard() {
           </div>
           <div>
             <p className="text-sm font-medium text-muted-foreground">Email</p>
-            <p className="text-lg font-semibold">{user.email}</p>
+            <p className="text-lg font-semibold [overflow-wrap:anywhere]">{user.email}</p>
           </div>
         </div>
 
         <Separator />
 
         <div>
-          <p className="text-sm font-medium text-muted-foreground mb-2">Current Role</p>
+          <p className="text-sm font-medium text-muted-foreground mb-2">Current role</p>
           <Badge 
             variant="outline" 
-            className={`${getRoleColor(user.role)} border-current`}
+            className="border-foreground/30 text-foreground"
           >
             <Shield className="h-3 w-3 mr-1" />
             {getRoleDisplayName(user.role)}
@@ -81,15 +81,15 @@ export function UserProfileCard() {
 
         <PermissionGate permission="system:admin">
           <div className="space-y-2">
-            <Label htmlFor="role-select">Manage User Roles (Admin Only)</Label>
+            <Label htmlFor="role-select">Change a colleague’s role</Label>
             <Select value={selectedUserId} onValueChange={(value) => { setSelectedUserId(value); setSelectedRole(null); }}>
-              <SelectTrigger>
+              <SelectTrigger id="role-select" aria-label="User">
                 <SelectValue placeholder="Select a user" />
               </SelectTrigger>
               <SelectContent>
                 {otherUsers.map((u) => (
                   <SelectItem key={u.id} value={u.id}>
-                    {u.name} — {getRoleDisplayName(u.role)}
+                    {u.name} ({getRoleDisplayName(u.role)})
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -100,7 +100,7 @@ export function UserProfileCard() {
                 onValueChange={(value: UserRole) => setSelectedRole(value)}
                 disabled={!selectedUser}
               >
-                <SelectTrigger id="role-select" className="flex-1">
+                <SelectTrigger className="flex-1" aria-label="New role">
                   <SelectValue placeholder="Select new role" />
                 </SelectTrigger>
                 <SelectContent>
@@ -116,7 +116,7 @@ export function UserProfileCard() {
                 disabled={!selectedUser || !selectedRole || selectedRole === selectedUser.role || setRole.isPending}
                 size="sm"
               >
-                <Settings className="h-4 w-4" />
+                Apply
               </Button>
             </div>
           </div>
@@ -125,18 +125,13 @@ export function UserProfileCard() {
         <Separator />
 
         <div>
-          <p className="text-sm font-medium text-muted-foreground mb-2">Permissions</p>
+          <p className="text-sm font-medium text-muted-foreground mb-2">Areas you can open</p>
           <div className="flex flex-wrap gap-1">
-            {user.permissions.slice(0, 6).map((permission) => (
-              <Badge key={permission} variant="secondary" className="text-xs">
-                {permission.split(':')[1]}
+            {[...new Set(user.permissions.map((p) => p.split(":")[0]).filter((m) => !["system", "dashboard"].includes(m)))].map((area) => (
+              <Badge key={area} variant="secondary" className="text-xs capitalize">
+                {area}
               </Badge>
             ))}
-            {user.permissions.length > 6 && (
-              <Badge variant="secondary" className="text-xs">
-                +{user.permissions.length - 6} more
-              </Badge>
-            )}
           </div>
         </div>
 
@@ -151,7 +146,7 @@ export function UserProfileCard() {
           </div>
           <Button variant="outline" onClick={handleSignOut}>
             <LogOut className="h-4 w-4 mr-2" />
-            Sign Out
+            Sign out
           </Button>
         </div>
       </CardContent>

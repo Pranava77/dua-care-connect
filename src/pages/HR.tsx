@@ -1,8 +1,9 @@
 import { useState } from "react";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, DollarSign, Users, Edit, Trash2, Eye, MoreHorizontal } from "lucide-react";
+import { Calendar, Users, Edit, Trash2, Eye, MoreHorizontal } from "lucide-react";
 import { AddStaffDialog } from "@/components/AddStaffDialog";
 import { EditStaffDialog } from "@/components/EditStaffDialog";
 import { StaffProfileDialog } from "@/components/StaffProfileDialog";
@@ -36,6 +37,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
 export default function HR() {
+  useDocumentTitle("Staff & HR");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [staffToDelete, setStaffToDelete] = useState<any>(null);
   const [editingStaff, setEditingStaff] = useState<any>(null);
@@ -85,56 +87,54 @@ export default function HR() {
 
   const hrStats = [
     {
-      title: "Total Staff",
+      title: "Total staff",
       value: totalStaff.toString(),
-      trend: `${presentCount} present`,
+      trend: `${new Set(staffMembers.map((m) => m.department)).size} departments`,
       icon: Users,
       color: "text-primary",
     },
     {
-      title: "Present Today",
+      title: "Working",
       value: presentCount.toString(),
-      trend: `${totalStaff > 0 ? Math.round((presentCount / totalStaff) * 100) : 0}% attendance`,
+      trend: "Status active",
       icon: Calendar,
       color: "text-success",
     },
     {
-      title: "On Leave",
+      title: "On leave",
       value: onLeaveCount.toString(),
-      trend: `${leaveRequests.filter(l => l.status === 'approved').length} approved`,
+      trend: `${leaveRequests.filter(l => l.status === 'approved').length} leave requests approved`,
       icon: Calendar,
       color: "text-warning",
     },
     {
-      title: "Active Requests",
+      title: "Leave to decide",
       value: leaveRequests.filter(l => l.status === 'pending').length.toString(),
       trend: "Pending approval",
-      icon: DollarSign,
+      icon: Calendar,
       color: "text-secondary",
     },
   ];
 
-  const departments = [
-    { name: "Medical", count: 8, color: "bg-primary" },
-    { name: "Nursing", count: 18, color: "bg-secondary" },
-    { name: "Care Staff", count: 12, color: "bg-accent" },
-    { name: "Admin", count: 6, color: "bg-success" },
-    { name: "Support", count: 4, color: "bg-warning" },
-  ];
+  const departments = Object.entries(
+    staffMembers.reduce<Record<string, number>>((acc, s) => ({ ...acc, [s.department]: (acc[s.department] ?? 0) + 1 }), {}),
+  )
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, count]) => ({ name, count }));
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="page-head">
         <div>
-          <h2 className="text-headline-1 font-bold text-foreground">HR & Staff Management</h2>
-          <p className="text-muted-foreground">Manage staff, attendance, leave, and payroll</p>
+          <h1 className="text-headline-1">Staff & HR</h1>
+          <p className="mt-3 text-muted-foreground">Who works here, in which department, and who is on leave.</p>
         </div>
         <PermissionGate permission="hr:create">
           <AddStaffDialog onSuccess={fetchData} />
         </PermissionGate>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {hrStats.map((stat) => (
           <Card key={stat.title}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -154,7 +154,7 @@ export default function HR() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card className="md:col-span-2">
           <CardHeader>
-            <CardTitle>Staff Directory</CardTitle>
+            <CardTitle>Staff directory</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
@@ -188,11 +188,11 @@ export default function HR() {
                         </Badge>
                       </TableCell>
                       <TableCell>{staff.email}</TableCell>
-                      <TableCell>{staff.phone}</TableCell>
+                      <TableCell className="whitespace-nowrap font-mono text-sm tabular">{staff.phone}</TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="hover:bg-primary/10">
+                            <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="More actions">
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
@@ -232,14 +232,14 @@ export default function HR() {
         <div className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Department Overview</CardTitle>
+              <CardTitle>Department overview</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 {departments.map((dept) => (
                   <div key={dept.name} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${dept.color}`} />
+                      <div className="h-2.5 w-2.5 rounded-sm bg-foreground/70" aria-hidden="true" />
                       <span className="text-sm font-medium text-foreground">{dept.name}</span>
                     </div>
                     <span className="text-sm font-bold text-foreground">{dept.count}</span>
@@ -251,7 +251,7 @@ export default function HR() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Upcoming Leave</CardTitle>
+              <CardTitle>Upcoming leave</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -266,7 +266,7 @@ export default function HR() {
                       <p className="text-xs text-muted-foreground mt-1">{leave.reason}</p>
                       <div className="flex items-center justify-between mt-2">
                         <span className="text-xs text-muted-foreground">
-                          {new Date(leave.from_date).toLocaleDateString()} - {new Date(leave.to_date).toLocaleDateString()}
+                          {new Date(leave.from_date).toLocaleDateString("en-GB")} to {new Date(leave.to_date).toLocaleDateString("en-GB")}
                         </span>
                         <Badge
                           variant="outline"
@@ -328,7 +328,7 @@ export default function HR() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Staff Member</AlertDialogTitle>
+            <AlertDialogTitle>Delete staff member</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete {staffToDelete?.name}? This action cannot be undone.
               All associated records, leave requests, and documents will also be removed.

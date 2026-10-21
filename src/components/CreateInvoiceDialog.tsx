@@ -149,12 +149,12 @@ export function CreateInvoiceDialog({ onSuccess }: { onSuccess?: () => void }) {
       <DialogTrigger asChild>
         <Button>
           <Plus className="mr-2 h-4 w-4" />
-          New Invoice
+          New invoice
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Create New Invoice</DialogTitle>
+          <DialogTitle>Create new invoice</DialogTitle>
           <DialogDescription>Create a new invoice for a resident</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -172,7 +172,7 @@ export function CreateInvoiceDialog({ onSuccess }: { onSuccess?: () => void }) {
                 <SelectContent>
                   {residents.map((resident) => (
                     <SelectItem key={resident.id} value={resident.id}>
-                      {resident.name} - Room {resident.room_number}
+                      {resident.name}, room {resident.room_number}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -203,7 +203,7 @@ export function CreateInvoiceDialog({ onSuccess }: { onSuccess?: () => void }) {
             {formData.services.map((service, index) => (
               <div key={index} className="grid grid-cols-12 gap-2 items-end">
                 <div className="col-span-4">
-                  <Label htmlFor={`service-name-${index}`}>Service Name</Label>
+                  <Label htmlFor={`service-name-${index}`}>Service name</Label>
                   <Input
                     id={`service-name-${index}`}
                     value={service.name}
@@ -274,7 +274,7 @@ export function CreateInvoiceDialog({ onSuccess }: { onSuccess?: () => void }) {
               Cancel
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Creating..." : "Create Invoice"}
+              {isLoading ? "Creating…" : "Create invoice"}
             </Button>
           </div>
         </form>

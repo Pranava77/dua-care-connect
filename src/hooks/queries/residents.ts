@@ -1,11 +1,20 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { Resident } from "@/lib/types";
 import { residentsApi, type ResidentInput } from "@/lib/api/residents";
 import { keys, useInvalidate } from "./keys";
 
 export const useResidents = (enabled = true) => useQuery({ queryKey: keys.residents, queryFn: () => residentsApi.list(), enabled });
 
-export const useResident = (id?: string) =>
-  useQuery({ queryKey: keys.resident(id ?? ""), queryFn: () => residentsApi.get(id!), enabled: !!id });
+export function useResident(id?: string) {
+  const client = useQueryClient();
+  return useQuery({
+    queryKey: keys.resident(id ?? ""),
+    queryFn: () => residentsApi.get(id!),
+    enabled: !!id,
+    // Render at once from the residents list when we have it, so the door transition has a target.
+    placeholderData: () => client.getQueryData<Resident[]>(keys.residents)?.find((r) => r.id === id),
+  });
+}
 
 export function useCreateResident() {
   const invalidate = useInvalidate();

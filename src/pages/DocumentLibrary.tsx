@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { Download, FileText, MessageSquareText, Search, Sparkles, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { DoorChip } from "@/components/door/DoorChip";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -35,6 +37,7 @@ const STATUS_STYLE: Record<CareDocument["status"], string> = {
 };
 
 export default function DocumentLibrary() {
+  useDocumentTitle("Documents");
   const [searchTerm, setSearchTerm] = useState("");
   const [toDelete, setToDelete] = useState<CareDocument | null>(null);
   const [reviewing, setReviewing] = useState<CareDocument | null>(null);
@@ -78,10 +81,10 @@ export default function DocumentLibrary() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
+      <div className="page-head">
         <div>
-          <h2 className="text-headline-1 font-bold text-foreground">Documents</h2>
-          <p className="text-body text-muted-foreground">
+          <h1 className="text-headline-1">Documents</h1>
+          <p className="mt-3 text-muted-foreground">
             Uploaded files are indexed for search and can be summarised or questioned by the assistant.
           </p>
         </div>
@@ -90,7 +93,7 @@ export default function DocumentLibrary() {
         </PermissionGate>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {statCards.map((s) => (
           <Card key={s.label}>
             <CardHeader className="pb-2">
@@ -149,7 +152,7 @@ export default function DocumentLibrary() {
                         </div>
                       </TableCell>
                       <TableCell><Badge variant="outline">{doc.category}</Badge></TableCell>
-                      <TableCell>{doc.resident_name ?? <span className="text-muted-foreground">—</span>}</TableCell>
+                      <TableCell>{doc.resident_id ? <DoorChip residentId={doc.resident_id} name={doc.resident_name} link /> : <span className="text-muted-foreground">Not linked</span>}</TableCell>
                       <TableCell><Badge variant="outline" className={STATUS_STYLE[doc.status]}>{doc.status}</Badge></TableCell>
                       <TableCell className="whitespace-nowrap">{new Date(doc.uploaded_at).toLocaleDateString()}</TableCell>
                       <TableCell>

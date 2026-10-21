@@ -1,11 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Users, Heart, DollarSign, UserCog, BarChart3, FileText, CheckCircle2, Circle, ArrowRight, LogIn, Home, Settings } from "lucide-react";
+import { Users, Heart, PoundSterling, UserCog, BarChart3, FileText, CheckCircle2, Circle, ArrowRight, LogIn, Home, Settings } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
 
 export default function About() {
+  useDocumentTitle("About");
   const { user } = useAuth();
 
   const features = [
@@ -17,7 +19,7 @@ export default function About() {
     },
     {
       icon: Users,
-      title: "Resident Management",
+      title: "Resident management",
       description: "Complete resident profiles, admission tracking, care planning, and resident history",
       status: "active"
     },
@@ -29,13 +31,13 @@ export default function About() {
     },
     {
       icon: FileText,
-      title: "Document Management",
+      title: "Document management",
       description: "Centralized storage for admission forms, KYC documents, contracts, and medical files",
       status: "active"
     },
     {
-      icon: DollarSign,
-      title: "Accounting & Billing",
+      icon: PoundSterling,
+      title: "Accounting & billing",
       description: "Invoice generation, payment tracking, financial reporting, and billing management",
       status: "active"
     },
@@ -47,13 +49,13 @@ export default function About() {
     },
     {
       icon: BarChart3,
-      title: "Reports & Analytics",
+      title: "Reports & analytics",
       description: "Comprehensive reporting, data analytics, and insights for informed decision-making",
       status: "active"
     },
     {
       icon: Settings,
-      title: "System Settings",
+      title: "System settings",
       description: "Configurable settings, user management, and system customization",
       status: "active"
     }
@@ -103,12 +105,12 @@ export default function About() {
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto p-6 space-y-6">
       {/* Hero Section */}
-      <Card className="bg-gradient-to-br from-primary/10 via-accent/10 to-success/10 border-primary/20">
+      <Card>
         <CardContent className="p-8">
           <div className="space-y-6">
             <div className="text-center space-y-3">
               <h1 className="text-headline-1 font-bold text-foreground">
-                Welcome to <span className="text-gradient-primary">SilverSync</span>
+                Welcome to SilverSync
               </h1>
               <p className="text-body text-lg text-muted-foreground max-w-3xl mx-auto">
                 A comprehensive care management platform designed for modern healthcare facilities. 
@@ -133,7 +135,7 @@ export default function About() {
       {/* Features Section */}
       <div>
         <div className="mb-6">
-          <h2 className="text-headline-2 font-bold text-foreground mb-2">Core Features</h2>
+          <h2 className="text-headline-2 font-bold text-foreground mb-2">Core features</h2>
           <p className="text-body text-muted-foreground">
             Comprehensive tools designed to streamline your care facility operations
           </p>
@@ -142,7 +144,7 @@ export default function About() {
           {features.map((feature) => {
             const Icon = feature.icon;
             return (
-              <Card key={feature.title} className="border-border/50 hover:shadow-lg transition-shadow">
+              <Card key={feature.title}>
                 <CardContent className="p-6">
                   <div className="flex items-start gap-4">
                     <div className="p-3 bg-primary/10 rounded-lg">

@@ -93,12 +93,12 @@ export function AddResidentDialog({ onSuccess }: { onSuccess?: () => void }) {
       <DialogTrigger asChild>
         <Button>
           <Plus className="mr-2 h-4 w-4" />
-          Add New Resident
+          Add resident
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="text-headline-2">Add New Resident</DialogTitle>
+          <DialogTitle className="text-headline-2">Add new resident</DialogTitle>
           <DialogDescription className="text-body">Enter the resident's information below</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -154,7 +154,7 @@ export function AddResidentDialog({ onSuccess }: { onSuccess?: () => void }) {
               Cancel
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Adding..." : "Add Resident"}
+              {isLoading ? "Adding…" : "Add Resident"}
             </Button>
           </div>
         </form>

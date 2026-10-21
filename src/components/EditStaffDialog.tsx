@@ -94,7 +94,7 @@ export function EditStaffDialog({ staff, open, onOpenChange, onSuccess }: EditSt
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="text-headline-2">Edit Staff Member</DialogTitle>
+          <DialogTitle className="text-headline-2">Edit staff member</DialogTitle>
           <DialogDescription className="text-body">Update the staff member's information below</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -159,7 +159,7 @@ export function EditStaffDialog({ staff, open, onOpenChange, onSuccess }: EditSt
                 <SelectContent>
                   <SelectItem value="Medical">Medical</SelectItem>
                   <SelectItem value="Nursing">Nursing</SelectItem>
-                  <SelectItem value="Care Staff">Care Staff</SelectItem>
+                  <SelectItem value="Care Staff">Care staff</SelectItem>
                   <SelectItem value="Admin">Admin</SelectItem>
                   <SelectItem value="Support">Support</SelectItem>
                 </SelectContent>
@@ -178,7 +178,7 @@ export function EditStaffDialog({ staff, open, onOpenChange, onSuccess }: EditSt
                 <SelectContent>
                   <SelectItem value="active">Active</SelectItem>
                   <SelectItem value="inactive">Inactive</SelectItem>
-                  <SelectItem value="on_leave">On Leave</SelectItem>
+                  <SelectItem value="on_leave">On leave</SelectItem>
                 </SelectContent>
               </Select>
             </div>

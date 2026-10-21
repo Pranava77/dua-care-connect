@@ -23,6 +23,10 @@ Demo logins: `admin@`, `doctor@`, `nurse@`, `accountant@`, `hr@`, `receptionist@
 
 Docker: `docker compose up --build`.
 
+## Interface
+
+The UI is built around one idea from dementia-friendly care homes: **every resident has their own coloured door**, with their room number and name, so they can find home. SilverSync shows each resident as that door everywhere (lists, records, invoices, search, the assistant), and the dashboard draws the house as corridors of doors. A door swings open on hover or keyboard focus to show what the room needs, a lit nurse-call light marks rooms that need someone, and clicking walks through the door into the resident's page (a View Transitions shared-element animation). Type is Atkinson Hyperlegible, designed for low-vision readers. See `DESIGN.md` for the concept, palette, type, motion rules and decisions.
+
 ## AI features
 
 | Feature | Where | How |

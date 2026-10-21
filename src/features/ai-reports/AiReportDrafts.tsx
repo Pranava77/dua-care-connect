@@ -7,7 +7,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Markdown } from "@/components/ai/Markdown";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAiStatus, useDraftReport, useReportKinds } from "@/hooks/queries/ai";
-import { generateMarkdownReport } from "@/lib/pdfGenerator";
 import type { DraftReport } from "@/lib/types";
 
 /** Lets the user have the AI draft a narrative report from live data, preview it and export a PDF. */
@@ -61,7 +60,12 @@ export function AiReportDrafts() {
           <div className="flex-1 overflow-y-auto pr-2">{report && <Markdown>{report.markdown}</Markdown>}</div>
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={() => setReport(null)}>Close</Button>
-            <Button onClick={() => report && generateMarkdownReport(report.title, report.markdown, user?.name ?? "System")}>
+            <Button onClick={async () => {
+              if (!report) return;
+              // The PDF library loads only when someone exports.
+              const { generateMarkdownReport } = await import("@/lib/pdfGenerator");
+              generateMarkdownReport(report.title, report.markdown, user?.name ?? "System");
+            }}>
               <Download className="h-4 w-4 mr-2" /> Export PDF
             </Button>
           </div>

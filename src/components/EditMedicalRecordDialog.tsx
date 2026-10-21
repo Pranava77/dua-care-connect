@@ -111,7 +111,7 @@ export function EditMedicalRecordDialog({ record, open, onOpenChange, onSuccess 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="text-headline-2">Edit Medical Record</DialogTitle>
+          <DialogTitle className="text-headline-2">Edit medical record</DialogTitle>
           <DialogDescription className="text-body">Update the medical record information below</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -129,7 +129,7 @@ export function EditMedicalRecordDialog({ record, open, onOpenChange, onSuccess 
                 <SelectContent>
                   {residents.map((resident) => (
                     <SelectItem key={resident.id} value={resident.id}>
-                      {resident.name} - Room {resident.room_number}
+                      {resident.name}, room {resident.room_number}
                     </SelectItem>
                   ))}
                 </SelectContent>
