@@ -651,7 +651,7 @@
 .page-head > :not(:first-child) { flex: none; }
 @media (max-width: 639px) {
   .page-head > :first-child { flex-basis: 100%; }
-  .page-head > :not(:first-child) { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .page-head > :not(:first-child) { display: flex; flex-wrap: wrap; gap: 0.5rem; flex: 1 1 100%; }
 }
 
 /* Grid children may shrink, so wide tables scroll inside their card instead of pushing the page */

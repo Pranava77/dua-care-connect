@@ -204,16 +204,17 @@ export default function Accounting() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card className="md:col-span-2">
           <CardHeader>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4">
               <CardTitle>Recent invoices</CardTitle>
-              <div className="flex items-center gap-2 ml-auto">
-                <div className="relative">
+              <div className="flex w-full flex-wrap items-center gap-2 sm:ml-auto sm:w-auto">
+                <div className="relative min-w-0 flex-1 sm:flex-none">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search invoices..."
+                    placeholder="Search invoices…"
+                    aria-label="Search invoices"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 w-[200px]"
+                    className="pl-10 sm:w-[200px]"
                   />
                 </div>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
